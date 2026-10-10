@@ -14,7 +14,8 @@
 - `moon` / `moonx` は `%USERPROFILE%\.moon\bin` に存在し、ユーザ PATH に入っている(インストーラが登録)。
 - **C コンパイラの自動探索**: MinGW があると `C:\ProgramData\mingw64\mingw64\bin\cc.exe` が使われた。`--dry-run` 出力に `C:/ProgramData/mingw64/mingw64/bin/cc.exe -o ...` と明記。
 - MinGW を PATH から外すと `no system C compiler found; tried cc, gcc, clang`。**バンドルの `internal/tcc.exe` は Windows では探索対象に入っていない**(blueprint の「tcc ではランタイムがビルド不可」と一致)。
-- MSVC(`cl`/`clang-cl`)はこの探索リストの文言に出てこない。MSVC 経路は `MOON_CC` 明示が確実(実機に MSVC なし・未検証)。
+- **MSVC 実機検証(同日・このマシンに VS2022 BuildTools + VCTools 導入後)**: vcvars64 で INCLUDE/LIB をロードして `cl.exe` が PATH にある状態では、**`MOON_CC` 未設定でも moon は自動的に `cl.exe` を検出**(`--dry-run` に `cl.exe /nologo /std:c11 /utf-8 /MT /Fo...` の実コマンド確認)。「tried cc, gcc, clang」の文言は cc 系が見つからなかった時の限定メッセージで、`cl` は別経路で検出される模様。
+- `MOON_CC=<cl.exe フルパス>` でも動作(vcvars64 の INCLUDE/LIB 環境変数が必要——ヘッダ/ライブラリ解決のため。`cl.exe` 単体の PATH 追加だけでは不十分な点に注意。DevBox/PowerShell で恒久化するなら vcvars64 起動ショートカット経由が実質必須)。
 
 ### 1.2 `.mbtx` の native ビルド
 
@@ -40,6 +41,14 @@
 
 - `moon install ./cmd/main --bin <dir>` → **`main.exe` として配置**(`.exe` 接尾辞は moon 側が付ける)。成功メッセージ `Installed 'main' to '<dir>\main.exe'`。
 - デフォルト配置先は `~/.moon/bin` = `%USERPROFILE%\.moon\bin`(インストーラがユーザ PATH に登録済み)。
+- **MSVC 環境で `moon install ./cmd/mbtx-install` が完走**: `mbtx-install.exe`(938KB)生成・配置成功。つまり**ツール本体は MSVC でネイティブビルド可能**。
+
+### 1.4.1 MSVC 製 mbtx-install.exe の実行結果(実機・これが本丸)
+
+- `--help` は正常表示。
+- `mbtx-install hello.mbtx --bin <dir>` → **`error: HOME is not set`** で終了(HOME 未設定の実害をそのまま踏んだ)。
+- `HOME=C:\Users\Administrator` を手動セットして再実行 → 次は `@fs.exists(): "...\bin3/C:\\Users\\Administrator\\wintest\\hello"` で OSError。**`basename()` が `\` 区切りを知らず `rev_find("/")` でフルパスをそのまま返し、`command_name` が `C:\...\hello` をコマンド名にした**結果、`dest` が `bin3/C:\...` という非法名に。パス正規化系のバグが実害として確認できた(レポートの差分表の1行目ではなく複数行が実害)。
+- `--list` は正常動作(`(no installs recorded)`)。manifest 読み書きの骨格自体は Windows でも動く。
 
 ### 1.5 Windows ネイティブの環境変数
 
@@ -104,7 +113,8 @@
 
 ## 5. 未検証・残課題
 
-- **MSVC 実機未検証**: このマシンに Build Tools 未導入。`MOON_CC=cl.exe` での `moon install ./cmd/mbtx-install` 成功は upstream のサポート範囲として高信頼だが、検証は残る。
-- **`@fs`/`@shell` の Windows ランタイム挙動**(realpath が `\` を返すか、`walk` の区切り、`@shell.Cmd` の `cmd` 経由か直接 spawn か):async が MSVC でビルドできた段階で実機確認が必要。パス正規化の実装詳細がここに依存。
-- **実行ファイル名の判定**: `.exe` 付け忘れで「コマンドが見つからない」系の UX 問題があるかは e2e で確認するのが確実。
-- **moon の MSVC 自動探索**: 探索文言に `cl` が出なかったため、MSVC 環境で `MOON_CC` 未設定時に自動解決するかは未確認(MSVC 環境での検証待ち)。
+- ~~MSVC 実機未検証~~ → **解消(同日検証)**: `moon install ./cmd/mbtx-install` 完走、`mbtx-install.exe --help` 動作、実行時の Unix 前提バグも実機で再現(§1.4.1)。
+- ~~moon の MSVC 自動探索~~ → **解消**: `cl.exe` が PATH にあれば `MOON_CC` 未設定でも自動検出されることを `--dry-run` 出力で確認。
+- **`@fs`/`@shell` の Windows ランタイム詳細**(`realpath` が `\` を返すか、`walk` の区切り、`@shell.Cmd` が cmd 経由か直接 spawn か、stdout/stderr の Capture 実装):パス正規化実装の詳細設計に依存。MSVC 環境で `mbtx-install` を直せば順次検証できる状態にある。
+- **`@fs.mkdir(recursive)` が非法名(`:` 含有)で何を返すか**: dest 判定の前段でどう落ちるか実機未確認(今回は dest で先に OSError した)。
+- **実使用レベルの e2e**: `.exe` 付け・manifest・`--list`・上書きガードを含めた Windows 版フローは、コード修正後に `run.ps1`(or 同等)で確認する段階。

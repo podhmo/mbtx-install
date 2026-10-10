@@ -71,7 +71,9 @@ design.md の「未決事項」から。各項目の詳細はリンク先に置�
     「Windows は MSVC Build Tools 必須(または WSL 経由)」に書き換え、
     issue #3 の「制限事項」表現を解消。
   - [ ] **e2e の Windows 版**(`run.ps1` 等)または統一 runner。
-  - [ ] **(blocked) MSVC 実機検証**:`MOON_CC=cl.exe` で
-    `moon install ./cmd/mbtx-install` と e2e。Build Tools 環境が必要。
+  - [x] **MSVC 実機検証**:`moon install ./cmd/mbtx-install` 完走
+    (mbtx-install.exe 938KB)。`cl.exe` は PATH にあれば自動検出。
+    実行時の Unix 前提バグ(HOME/basename)も実機再現済み
+    ([windows-report.md](docs/ja/windows-report.md) §1.4.1)。
 - [ ] **キャッシュ名への `+v<ver>+<profile>` サフィックス** ([#4](https://github.com/podhmo/mbtx-install/issues/4)):
   必要になればディレクトリ名を `+` 区切りで拡張する案。issue で追跡中。
