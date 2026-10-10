@@ -37,6 +37,7 @@ jobs:
     - name: Test
       run: |
         if [ -f moon.mod ]; then
+          moon update
           moon check
           moon test
         else

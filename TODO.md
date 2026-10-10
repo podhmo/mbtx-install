@@ -13,14 +13,14 @@ This file tracks actionable tasks only; completed work is swept to
 
 ### mbtx-install 本体
 
-- [ ] **`mbtx-install` CLI の実装** ([docs/ja/design.md](docs/ja/design.md)):
+- [x] **`mbtx-install` CLI の実装** ([docs/ja/design.md](docs/ja/design.md)):
   ルートA — `moon build --target native --target-dir <cache> <abs>.mbtx` で
   ビルドし、成果物 `single.exe` を `~/.moon/bin/<name>` へコピー。
   CLI は `mbtx-install <path> [-o|--name <cmd>] [--bin <dir>] [--release]`。
-- [ ] **エラーハンドリング** ([design.md](docs/ja/design.md) エラーハンドリング方針):
+- [x] **エラーハンドリング** ([design.md](docs/ja/design.md) エラーハンドリング方針):
   `.mbtx` 不存在 / `moon` が PATH に無い / ビルド失敗時のメッセージ、
   `~/.moon/bin` が PATH に無い場合の警告。
-- [ ] **README 整備**: 使い方と `moon install` による自己インストール手順
+- [x] **README 整備**: 使い方と `moon install` による自己インストール手順
   (`moon install podhmo/mbtx-install/cmd/mbtx-install`)を記載。
 
 ### 将来拡張・棚卸し済み検討事項
