@@ -97,12 +97,27 @@ async fn install(config : Config) -> Int {
   let dry_args = [..flags, "--dry-run", abs]
   let artifact_hint = locate_artifact_hint(dirname(abs), dry_args)
 
-  // ---- real build: moon's output goes straight through ----
-  let status = @shell.Cmd("moon", build_args, stdout=Inherit, stderr=Inherit).status() catch {
-    err => {
-      eprintln("error: failed to run `moon`: \{err}")
-      return 1
+  // ---- real build: -v passes moon's logs through, otherwise they are
+  // captured and only replayed on failure ----
+  let status = if config.verbose {
+    @shell.Cmd("moon", build_args, stdout=Inherit, stderr=Inherit).status() catch {
+      err => {
+        eprintln("error: failed to run `moon`: \{err}")
+        return 1
+      }
     }
+  } else {
+    let out = @shell.Cmd("moon", build_args, stdout=Capture, stderr=Capture).output() catch {
+      err => {
+        eprintln("error: failed to run `moon`: \{err}")
+        return 1
+      }
+    }
+    let code = out.exit_code()
+    if code != 0 {
+      eprintln(out.stdout() + out.stderr())
+    }
+    code
   }
   if status != 0 {
     eprintln("error: `moon build` failed with exit code \{status}")

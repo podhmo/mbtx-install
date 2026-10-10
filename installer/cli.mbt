@@ -9,6 +9,8 @@ pub struct Config {
   bin_dir : String?
   /// Build in release mode (`--release`); default is debug.
   release : Bool
+  /// Pass moon's logs through (`-v` / `--verbose`); default is quiet.
+  verbose : Bool
 }
 
 ///|
@@ -43,6 +45,12 @@ pub fn command() -> @argparse.Command {
         long="release",
         about="build with --release (default: debug build)",
       ),
+      @argparse.FlagArg(
+        "verbose",
+        short='v',
+        long="verbose",
+        about="show moon's build logs (default: quiet, errors still shown)",
+      ),
     ],
   )
 }
@@ -64,5 +72,6 @@ pub fn parse_args(argv : ArrayView[String]) -> Config raise {
     _ => None
   }
   let release = matches.flags.get("release") is Some(true)
-  { path, name, bin_dir, release, }
+  let verbose = matches.flags.get("verbose") is Some(true)
+  { path, name, bin_dir, release, verbose, }
 }

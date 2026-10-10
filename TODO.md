@@ -33,7 +33,7 @@ This file tracks actionable tasks only; completed work is swept to
   manifest 導入を前提に実装する。list はインストール済み名とソースの一覧、
   uninstall はバイナリ(`<bin>/<name>`)と workdir(`~/.mbtx-install/<key>`)の
   削除。manifest なしの暫定策として README に手動削除手順を書く手もある。
-- [ ] **`-v` / `--verbose` で moon の INFO ログを抑制**
+- [x] **`-v` / `--verbose` で moon の INFO ログを抑制**
   ([usability-report.md](docs/ja/usability-report.md)): 正常系でも moon の
   INFO ログが素通しして `Installed` 行が埋もれる。既定は静かにし、
   verbose 指定時のみ素通しにする。
