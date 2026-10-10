@@ -44,6 +44,13 @@ This file tracks actionable tasks only; completed work is swept to
   現状は失敗理由にかかわらず「`moon update` を実行」を hint として出すため、
   ユーザーの `.mbtx` の単なるコンパイルエラーにも誤誘導する。問題の記録のみで
   解決方針は未決(失敗種別の判定が困難)。
+- [ ] **(low) PATH 警告は絶対パスで表示** ([usability-report.md](docs/ja/usability-report.md) F-9):
+  `--bin relbin` のような相対指定だと警告が相対パスのまま出て、
+  PATH に何を足すべきか分かりにくい。
+- [ ] **(low) コピー失敗時のエラーを人間向け文言にマップ**
+  ([usability-report.md](docs/ja/usability-report.md) F-10):
+  `OSError("@fs.open()...")` の内部表現が露出するので、
+  `Text file busy` 相当の文言に変換する。
 
 ### 将来拡張・棚卸し済み検討事項
 
