@@ -1,0 +1,8 @@
+import {
+  "moonbitlang/async/fs",
+  "moonbitlang/async/shell",
+  "moonbitlang/core/argparse",
+  "moonbitlang/core/env",
+}
+
+supported_targets = "+native"
