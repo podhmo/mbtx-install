@@ -35,7 +35,8 @@ This file tracks actionable tasks only; completed work is swept to
   ([usability-report.md](docs/ja/usability-report.md) F-2, PR #14 コメントで方針了承):
   manifest 導入を前提に実装する。バイナリ(`<bin>/<name>`)と
   workdir(`~/.mbtx-install/<key>`)の削除 + manifest エントリ削除。
-  暫定策として README に手動削除手順を書く手もある。
+  暫定策として README の「Removing an installed command」に
+  手動削除手順は記載済み。
 - [x] **`-v` / `--verbose` で moon の INFO ログを抑制**
   ([usability-report.md](docs/ja/usability-report.md)): 正常系でも moon の
   INFO ログが素通しして `Installed` 行が埋もれる。既定は静かにし、
