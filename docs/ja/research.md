@@ -118,7 +118,7 @@ moon build --target native --release hello.mbtx
 
 ## 7. 未検証・残課題
 
-- 真っ新な環境(レジストリインデックス未取得)で `.mbtx` の外部依存が初回ビルド時に自動解決されるか。`moon update` の事前実行が要るか。
+- ~~真っ新な環境(レジストリインデックス未取得)で `.mbtx` の外部依存が初回ビルド時に自動解決されるか。`moon update` の事前実行が要るか。~~ → 補足受領: `mbtx-install` というコマンドとして導入・実行する限り、その導入自体に moon ツールチェーン(+レジストリインデックス)が前提になるため、このケースは実運用上ほぼ発生しない=自動解決される。サブコマンドを持つ形態に変わる場合は前提が変わり得るが、そのときはリポジトリ名・ツール名自体も変わる想定。
 - `single` 仮想パッケージ名や成果物パス規則は moon の実装詳細。バージョン差分に弱い可能性。→ 成果物探索は `find <target-dir> -name '*.exe'` 相当のフォールバックが安全。
 - `.mbtx` で import-all (`*`) を使ったものも native ビルド・実行できることを確認済み(`--target native --release` で `len=3` を出力)。
 - Windows: 成果物は `*.exe`。`MOON_CC` 問題(Windows native は tcc 同梱ではランタイムがビルド不可、MSVC か shim が必要 — moonbit-individual-handbook の記録より)があり、native インストールがそもそも難しい環境がある。
