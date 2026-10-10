@@ -51,6 +51,31 @@ $ mygrep -n TODO src/*.mbt
 | `-v`, `--verbose` | show moon's build logs (default: quiet, errors still shown) |
 | `--list` | list installed commands recorded in the manifest (takes no path) |
 
+## Removing an installed command
+
+There is no `uninstall` command yet — remove the three pieces by hand.
+`mbtx-install --list` shows what is recorded in the manifest
+(`~/.mbtx-install/config.json`):
+
+```console
+$ mbtx-install --list
+hello -> /home/u/tools/hello.mbtx
+$ rm ~/.moon/bin/hello                                  # the installed binary
+$ rm -rf ~/.mbtx-install/-home-u-tools-hello.mbtx      # its build cache
+```
+
+Then drop the `"hello"` entry under `"installs"` in
+`~/.mbtx-install/config.json` so the name is no longer recorded as ours —
+a stale record would let a future install overwrite a binary we never put
+there.
+
+- The binary lives in the entry's `bin` field (`~/.moon/bin` unless
+  installed with `--bin`).
+- The build cache dir is the `source` absolute path with `/` → `-`.
+- All three steps are optional except the binary removal — skip the cache
+  or manifest edit and things still work; a stale manifest entry only
+  affects the overwrite guard.
+
 ## How it works
 
 Route A of [docs/ja/design.md](docs/ja/design.md) (Japanese):
