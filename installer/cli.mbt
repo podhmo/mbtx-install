@@ -66,7 +66,7 @@ pub fn command() -> @argparse.Command {
 ///|
 /// Parse `argv` (without the program name) into a `Config`.
 /// Raises the parser's error (message already contains usage text) on failure.
-pub fn parse_args(argv : ArrayView[String]) -> Config raise {
+pub fn Config::parse(argv : ArrayView[String]) -> Config raise {
   let matches = command().parse(argv~)
   let first = fn(key : String) -> String? {
     matches.values.get(key).bind(fn(v) { v.get(0) })
