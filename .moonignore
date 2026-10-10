@@ -1,0 +1,5 @@
+# repo-internal docs and harness — not needed by consumers of the module
+docs/
+e2e/
+TODO.md
+TODO-archive.md
