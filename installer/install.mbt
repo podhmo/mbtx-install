@@ -54,12 +54,8 @@ async fn Config::install(self : Config) -> Int {
     return usage_error("cannot derive a command name from '\{path}'")
   }
   let name = match self.name {
-    Some(n) =>
-      if is_valid_name(n) {
-        n
-      } else {
-        return usage_error("invalid command name: '\{n}'")
-      }
+    Some(n) if is_valid_name(n) => n
+    Some(n) => return usage_error("invalid command name: '\{n}'")
     None => derived_name
   }
 
@@ -143,18 +139,15 @@ async fn Config::install(self : Config) -> Int {
   }
 
   // ---- find the produced binary ----
-  let artifact = match artifact_hint {
-    Some(path) if @fs.exists(path) => path
-    _ =>
-      match find_artifact(workdir, profile~) {
-        Some(path) => path
-        None => {
-          eprintln(
-            "error: build succeeded but no artifact was found under '\{workdir}'",
-          )
-          return 1
-        }
-      }
+  let artifact_opt = match artifact_hint {
+    Some(path) if @fs.exists(path) => Some(path)
+    _ => find_artifact(workdir, profile~)
+  }
+  guard artifact_opt is Some(artifact) else {
+    eprintln(
+      "error: build succeeded but no artifact was found under '\{workdir}'",
+    )
+    return 1
   }
 
   // ---- install ----
