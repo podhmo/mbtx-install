@@ -35,6 +35,10 @@ This file tracks actionable tasks only; completed work is swept to
 - [ ] **e2e: manifest 存在確認の追加** ([usability-report.md](docs/ja/usability-report.md) コメント受領):
   `e2e/run.sh` でインストール後に `~/.mbtx-install/config.json` の生成を
   確認する程度をスモークに加える(manifest 実装後)。
+- [ ] **ビルド失敗時の hint が文脈不問な問題** ([usability-report.md](docs/ja/usability-report.md) F-4):
+  現状は失敗理由にかかわらず「`moon update` を実行」を hint として出すため、
+  ユーザーの `.mbtx` の単なるコンパイルエラーにも誤誘導する。問題の記録のみで
+  解決方針は未決(失敗種別の判定が困難)。
 
 ### 将来拡張・棚卸し済み検討事項
 
