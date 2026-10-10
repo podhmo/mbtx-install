@@ -125,6 +125,7 @@ mbtx-install <path-or-url> [-o|--name <cmd>] [--bin <dir>] [--release]
 4. **shebang 対応**: ~~`.mbtx` 先頭に shebang を書けるか~~ → 実機検証済みで**不可**(`#` は字句エラー)。直接実行にはバイナリ化必須のため、本項はクローズ。
 5. **upstream 連携**: `moon install` の `.mbtx` 対応を upstream に提案するか。対応されればルートAのコピー処理ごと置き換えられる可能性。
 6. **Windows 対応**: `*.exe` suffix とネイティブツールチェーン問題(MOON_CC shim or MSVC)。→ **制限事項として [issue #3](https://github.com/podhmo/mbtx-install/issues/3) で追跡**し、あとで検討する方針(レビュー確定)。初期版の対象プラットフォームは Linux/macOS とみなす。
+7. **キャッシュ名へのバージョン suffix**: 必要になれば `github-foo/bar+v0.1.9+release` 風に `+` 区切りでディレクトリ名を伸ばす案。初期版では不要と判断 → **[issue #4](https://github.com/podhmo/mbtx-install/issues/4) で追跡**。
 
 ## 決定事項まとめ
 
