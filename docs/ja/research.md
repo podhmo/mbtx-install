@@ -127,7 +127,8 @@ moon build --target native --release hello.mbtx
 - Windows: 成果物は `*.exe`。`MOON_CC` 問題(Windows native は tcc 同梱ではランタイムがビルド不可、MSVC か shim が必要 — moonbit-individual-handbook の記録より)があり、native インストールがそもそも難しい環境がある。→ **制限事項として扱う方針([issue #3](https://github.com/podhmo/mbtx-install/issues/3) で追跡、あとで検討)**。
 - `moon install` が内部でどの `--target`/`--release` 設定を使うか → 生成物サイズから native release 相当と推測(インストール済み `main` = 473,776B、手元の release single.exe = 473,760B、debug = 791,744B)。
 - debug/release ビルド: Rust 同様に分かれており `--release` で切替。hello.mbtx で debug 0.345s / release 0.384s(小さな差。デバッグ版の方が若干速い)。→ レビュー指摘により **mbtx-install のデフォルトは native デバッグビルド(ビルド時間優先)、`--release` オプションで切替可能**にする方針。
-- 同名 `.mbtx` が別ディレクトリにあった場合のコマンド名衝突は仕様上「ファイル名に準拠」なので利用者側の問題。キャッシュキーは絶対パスのハッシュ等で一意化するのが妥当。
+- 同名 `.mbtx` が別ディレクトリにあった場合のコマンド名衝突は仕様上「ファイル名に準拠」なので利用者側の問題。
+- キャッシュキー(レビュー反映): 絶対パスハッシュ案は却下し、**絶対パスの `/` を `-` に置換した名前**(Claude Code の projects 保管方式と同型)を採用。git 管理下なら `<owner>-<repo>` をプレフィックスにする案もあったが、単純さ優先で全パス `-` 置換。`-` を含むパス名同士での衝突は可能性として残るが許容(厳密にしたくなったら末尾に短いハッシュを足す余地あり)。プロファイル/世代(debug/release 等)でサブディレクトリを切ると掃除・切り戻しに親切、という指摘も反映。
 - `.mbtx` に shebang 行を書けるか → **書けない**(実機確認。`#` は字句エラー、`#!` はパースエラー)。`#!/usr/bin/env moon run` 型の直接実行は不可能なので、実行ファイル化は必須。
 
 ## 8. 結論サマリ

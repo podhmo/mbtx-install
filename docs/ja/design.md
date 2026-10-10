@@ -31,7 +31,7 @@
 
 ```
 mbtx-install mytool.mbtx
-  ├─ キャッシュ領域に一意な作業ディレクトリを用意 (例: ~/.mbtx-install/<hash>/)
+  ├─ キャッシュ領域に一意な作業ディレクトリを用意 (例: ~/.mbtx-install/<path-dash>/)
   ├─ moon build --target native --target-dir <cache> <abspath>/mytool.mbtx   # デフォルトはデバッグビルド
   │    → <cache>/mytool.mbtx/native/debug/build/single/single.exe
   │      (--release 指定時は native/release/ 配下)
@@ -74,9 +74,13 @@ mbtx-install <path-or-url> [--name <cmd>] [--bin <dir>] [--release]
 
 ### キャッシュ・作業ディレクトリ
 
-- 場所: **`~/.mbtx-install/`** に一意なディレクトリを切る(レビューでの提案を採用。`~/.moon` の慣例に揃う)。OS 標準キャッシュ(XDG 等)案は却下。
-- 一意性: 入力 `.mbtx` の**絶対パスのハッシュ**(例: SHA-256 先頭 12 桁)をディレクトリ名に使い、同名ファイルの別パス同士が衝突しないようにする。
-- 保持物: `--target-dir` 配下のビルド成果物(`.moon_db` 等の moon キャッシュ含む)。再ビルド時に moon の増分ビルドが効くよう、同じ hash ディレクトリを使い回す。
+- 場所: **`~/.mbtx-install/`** 配下に一意なディレクトリを切る(`~/.moon` の慣例に揃う)。OS 標準キャッシュ(XDG 等)案は却下。
+- 命名: **`.mbtx` の絶対パスの `/` を `-` に置換した名前**(Claude Code の `~/.claude/projects/` と同型。人間が見て元ファイルを特定しやすい)。
+  - 例: `/home/u/ghq/github.com/podhmo/foo/scripts/bar.mbtx` → `-home-u-ghq-github-com-podhmo-foo-scripts-bar.mbtx`
+  - git 管理下のファイルは `<owner>-<repo>` プレフィックス案もあったが、単純さ優先で全パス `-` 置換を採用。
+  - 衝突: `-` を含むパス同士(例 `/a-b/c` vs `/a/b-c`)で稀に衝突し得るが許容。必要になれば末尾に短いハッシュを付ける余地は残す。
+- 世代/プロファイル分け: ディレクトリ内を `debug/`・`release/` 等で切ると、古い成果物の掃除や切り戻しがしやすい(レビュー指摘「バージョンで切る」を反映)。
+- 保持物: `--target-dir` 配下のビルド成果物(`.moon_db` 等の moon キャッシュ含む)。再ビルド時に moon の増分ビルドが効くよう、同じディレクトリを使い回す。
 
 ### 成果物の特定
 
@@ -129,7 +133,7 @@ mbtx-install <path-or-url> [--name <cmd>] [--bin <dir>] [--release]
 | ルート | ルートA: `moon build --target native --target-dir <cache>` + 成果物を `~/.moon/bin` へコピー |
 | コマンド名 | ファイル名(`*.mbtx` 拡張子を除く)、`--name` で上書き可 |
 | 配置先 | `~/.moon/bin`(`--bin` 変更可) |
-| キャッシュ | `~/.mbtx-install/<abspath-hash>/` |
+| キャッシュ | ``~/.mbtx-install/<path-with-/→->/` (絶対パスの `/` を `-` 置換)` |
 | ビルドプロファイル | デフォルト debug、`--release` で切替 |
 | 成果物特定 | `--dry-run` 出力のリンク行パース → `*.exe` 探索フォールバック |
 | 更新 | 無条件上書き |
