@@ -43,6 +43,7 @@ $ mygrep -n TODO src/*.mbt
 | `--release` | build the release profile (default: debug build) |
 | `-v`, `--verbose` | show moon's build logs (default: quiet, errors still shown) |
 | `--list` | list installed commands recorded in the manifest (takes no path) |
+| `--version` | print the version and exit (takes no path) |
 
 ## Removing an installed command
 

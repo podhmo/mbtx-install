@@ -25,6 +25,14 @@ test "command_name strips the .mbtx suffix" {
 }
 
 ///|
+test "Config::parse sets the version flag" {
+  let config = @installer.Config::parse(["--version"])
+  assert_eq(config.version, true)
+  assert_eq(config.list, false)
+  assert_eq(config.path, None)
+}
+
+///|
 test "is_valid_name rejects empty and pathed names" {
   assert_eq(@installer.is_valid_name("mytool"), true)
   assert_eq(@installer.is_valid_name(""), false)

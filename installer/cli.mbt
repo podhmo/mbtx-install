@@ -1,8 +1,13 @@
 ///|
+/// The installed binary's version, baked in at build time.
+/// Keep in sync with `version` in `moon.mod`.
+pub const VERSION : String = "0.1.1"
+
+///|
 /// Parsed command-line configuration for `mbtx-install`.
 pub struct Config {
   /// Path to the `.mbtx` script, as given on the command line
-  /// (`None` when `--list` is used without a path).
+  /// (`None` when `--list`/`--version` is used without a path).
   path : String?
   /// Installed command name override (`-o` / `--name`).
   name : String?
@@ -14,6 +19,8 @@ pub struct Config {
   verbose : Bool
   /// List installs recorded in the manifest (`--list`); takes no path.
   list : Bool
+  /// Print the version and exit (`--version`); takes no path.
+  version : Bool
 }
 
 ///|
@@ -59,6 +66,11 @@ pub fn command() -> @argparse.Command {
         long="list",
         about="list installed commands recorded in the manifest",
       ),
+      @argparse.FlagArg(
+        "version",
+        long="version",
+        about="print the version and exit",
+      ),
     ],
   )
 }
@@ -77,5 +89,6 @@ pub fn Config::parse(argv : ArrayView[String]) -> Config raise {
   let release = matches.flags.get("release") is Some(true)
   let verbose = matches.flags.get("verbose") is Some(true)
   let list = matches.flags.get("list") is Some(true)
-  { path, name, bin_dir, release, verbose, list, }
+  let version = matches.flags.get("version") is Some(true)
+  { path, name, bin_dir, release, verbose, list, version, }
 }

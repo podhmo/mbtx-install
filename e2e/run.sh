@@ -58,6 +58,15 @@ if "$MBTX_INSTALL" --list "$SCRIPTS/hello.mbtx" >/dev/null 2>&1; then
 fi
 echo "e2e: --list ok"
 
+# --version prints the baked-in version; it takes no path argument.
+version_out="$("$MBTX_INSTALL" --version)"
+echo "$version_out" | grep -qE '^mbtx-install [0-9]+\.[0-9]+\.[0-9]+$' \
+  || fail "--version: unexpected output: $version_out"
+if "$MBTX_INSTALL" --version "$SCRIPTS/hello.mbtx" >/dev/null 2>&1; then
+  fail "--version accepted a path argument"
+fi
+echo "e2e: --version ok"
+
 "$MBTX_INSTALL" "$SCRIPTS/argv-echo.mbtx" --bin "$TMPBIN" >/dev/null
 out="$("$TMPBIN/argv-echo" alpha "b c")"
 expected="arg[0]=$TMPBIN/argv-echo
