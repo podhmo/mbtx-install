@@ -68,18 +68,12 @@ pub fn command() -> @argparse.Command {
 /// Raises the parser's error (message already contains usage text) on failure.
 pub fn parse_args(argv : ArrayView[String]) -> Config raise {
   let matches = command().parse(argv~)
-  let path = match matches.values {
-    { "path": [p], .. } => Some(p)
-    _ => None
+  let first = fn(key : String) -> String? {
+    matches.values.get(key).bind(fn(v) { v.get(0) })
   }
-  let name = match matches.values {
-    { "name": [n], .. } => Some(n)
-    _ => None
-  }
-  let bin_dir = match matches.values {
-    { "bin": [dir], .. } => Some(dir)
-    _ => None
-  }
+  let path = first("path")
+  let name = first("name")
+  let bin_dir = first("bin")
   let release = matches.flags.get("release") is Some(true)
   let verbose = matches.flags.get("verbose") is Some(true)
   let list = matches.flags.get("list") is Some(true)
