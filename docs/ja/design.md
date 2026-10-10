@@ -58,11 +58,11 @@ mbtx-install mytool.mbtx
 ### CLI
 
 ```
-mbtx-install <path-or-url> [--name <cmd>] [--bin <dir>] [--release]
+mbtx-install <path-or-url> [-o|--name <cmd>] [--bin <dir>] [--release]
 ```
 
 - 第1引数: ローカルの `.mbtx` パス(初期版はローカルのみ。URL は将来拡張)。
-- `--name`: コマンド名の上書き。デフォルトはファイル名(下記)。
+- `-o`, `--name`: コマンド名の上書き(unix 慣例の `-o` を別名として提供。デフォルトはファイル名、下記)。
 - `--bin`: インストール先。デフォルト `~/.moon/bin`(`moon install` の標準に準拠)。
 - `--release`: リリースビルド(最適化)に切替。デフォルトは**デバッグビルド**(ビルド時間優先。MoonBit は Rust 同様 debug/release が分かれており、デバッグ版の方がビルドが速い)。
 - 失敗時は非ゼロ終了 + 何が失敗したか(ビルド/コピー/依存解決)を表示。
