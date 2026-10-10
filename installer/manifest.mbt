@@ -48,13 +48,15 @@ pub fn format_installs(installs : Map[String, Json]) -> Array[String] {
   let names = installs.keys().to_array()
   names.sort()
   [
-    for name in names => match installs.get(name) {
-      Some(Object(entry)) =>
-        match entry.get("source") {
-          Some(String(s)) if !s.is_empty() => "\{name} -> \{s}"
-          _ => name
-        }
-      _ => name
+    for name in names => {
+      match installs.get(name) {
+        Some(Object(entry)) =>
+          match entry.get("source") {
+            Some(String(s)) if !s.is_empty() => "\{name} -> \{s}"
+            _ => name
+          }
+        _ => name
+      }
     }
   ]
 }
