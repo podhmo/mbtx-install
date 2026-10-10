@@ -34,6 +34,14 @@
   - `moon run -e 'fn main { ... }'` (インライン)
   - `moonx script.mbtx` (後述。常に Wasm)
 - `moon test script.mbtx` で単体テスト可能(テスト用エントリは `main` を実行しない)。
+- `moon check script.mbtx` / `moon build script.mbtx` もプロジェクト外・単体でそのまま動く(実機確認)。
+
+### テスト・lint・check と `.mbtx` (PR コメント受領分、実機検証済み)
+
+- **インラインテストは同じファイルに書ける**。`.mbtx` 内に `test { assert_eq(...) }` ブロックを書くと `moon test file.mbtx` で実行される(`Total tests: 1, passed: 1` / 失敗時は `1 != 2` の diff 表示)。1ファイル志向と矛盾しない。
+- `moon test --help` の公式記述: 明示した `.mbtx` パスはそのスクリプトだけをテスト対象にし、テストは生成エントリポイントで走る(スクリプトの `fn main` は実行されない。`fn main` の定義自体は必須)。**パッケージ一括テストでは `.mbtx` は対象外**。プロジェクト外では `.mbt` / `.mbt.md` の単体テストも可能。
+- **`moon lint` はこのツールチェーン(0.1.20260920)に存在しない**。`moon lint` を呼ぶと外部実行ファイル `moon-lint` を PATH から探しにいき、未導入なら `no such subcommand` でエラー。docs 上の "lint" 記述は warn-list の警告名 `syntax_lint` (warning 63) を指すだけで、lint サブコマンドではない。→ lint は現状 `.mbtx` 運用の検討対象外(コメントの補足通り)。
+- check/build は `.mbtx` をそのまま受理するため、CI 等で品質担保するなら `moon check file.mbtx`(と `moon test`)を使うのが実用的。
 
 ### メタデータ記述について (要調査だった項目)
 
