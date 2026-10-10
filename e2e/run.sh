@@ -36,6 +36,14 @@ extra="$(echo "$verbose_log" | grep -vE "^(Installed|warning:)")"
 [ -n "$extra" ] || fail "verbose mode hid moon logs: $verbose_log"
 echo "e2e: verbose ok"
 
+# A symlinked script installs under the symlink's basename, not the target's.
+ln -s "$SCRIPTS/hello.mbtx" "$TMPBIN/alias-hello.mbtx"
+"$MBTX_INSTALL" "$TMPBIN/alias-hello.mbtx" --bin "$TMPBIN" >/dev/null
+[ -x "$TMPBIN/alias-hello" ] || fail "symlink: installed under realpath basename"
+out="$("$TMPBIN/alias-hello")"
+[ "$out" = "hello from mbtx-install e2e" ] || fail "symlink: unexpected output: $out"
+echo "e2e: symlink basename ok"
+
 # Installing records the name in the manifest (~/.mbtx-install/config.json).
 MANIFEST="$HOME/.mbtx-install/config.json"
 [ -f "$MANIFEST" ] || fail "manifest not created: $MANIFEST"
