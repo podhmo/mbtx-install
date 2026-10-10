@@ -11,9 +11,16 @@ pub async fn run(argv : ArrayView[String]) -> Int {
       return 2
     }
   }
-  match (config.list, config.path) {
-    (true, Some(_)) => usage_error("--list cannot be combined with <path>")
-    (true, None) => {
+  match (config.version, config.list, config.path) {
+    (true, false, None) => {
+      println("mbtx-install \{VERSION}")
+      0
+    }
+    (true, _, _) =>
+      usage_error("--version cannot be combined with other arguments")
+    (false, true, Some(_)) =>
+      usage_error("--list cannot be combined with <path>")
+    (false, true, None) => {
       guard @env.get_env_var("HOME") is Some(home) else {
         eprintln("error: HOME is not set; cannot resolve the manifest")
         return 1
@@ -21,8 +28,8 @@ pub async fn run(argv : ArrayView[String]) -> Int {
       list_installs(manifest_path(home))
       0
     }
-    (false, None) => usage_error("missing required argument: <path>")
-    (false, Some(_)) => config.install()
+    (false, false, None) => usage_error("missing required argument: <path>")
+    (false, false, Some(_)) => config.install()
   }
 }
 
