@@ -1,0 +1,6 @@
+import { "moonbitlang/x/json5" }
+
+fn main raise {
+  let v = @json5.parse("{a: 1, b: 'x'}")
+  println(v.to_string())
+}

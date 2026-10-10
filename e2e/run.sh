@@ -33,7 +33,12 @@ arg[2]=b c"
 [ "$out" = "$expected" ] || fail "argv-echo: unexpected output: $out"
 echo "e2e: argv-echo ok"
 
-# 3. Same command reinstalls cleanly (unconditional overwrite).
+"$MBTX_INSTALL" "$SCRIPTS/dep-json5.mbtx" --bin "$TMPBIN" >/dev/null
+out="$("$TMPBIN/dep-json5")"
+[ "$out" = 'Object({a: Number(1), b: String(x)})' ] || fail "dep-json5: unexpected output: $out"
+echo "e2e: dep-json5 ok (external mooncakes dep resolved)"
+
+# 4. Same command reinstalls cleanly (unconditional overwrite).
 "$MBTX_INSTALL" "$SCRIPTS/hello.mbtx" --bin "$TMPBIN" >/dev/null
 out="$("$TMPBIN/hello")"
 [ "$out" = "hello from mbtx-install e2e" ] || fail "reinstall: unexpected output: $out"
