@@ -205,25 +205,20 @@ async fn locate_artifact_hint(
 async fn find_artifact(workdir : String, profile~ : String) -> String? {
   let found : Array[String] = []
   @fs.walk(workdir, (dir, entries) => {
-    for entry in entries {
-      if entry.has_suffix(".exe") {
-        found.push(dir + "/" + entry)
-      }
-    }
+    found.push_iter(
+      entries
+      .iter()
+      .filter(fn(entry) { entry.has_suffix(".exe") })
+      .map(fn(entry) { "\{dir}/\{entry}" }),
+    )
   }) catch {
     _ => ()
   }
   found.sort()
   let preferred = "/native/" + profile + "/"
-  for path in found {
-    if path.contains(preferred) {
-      return Some(path)
-    }
-  }
-  if found.length() > 0 {
-    Some(found[0])
-  } else {
-    None
+  match found.iter().find_first(fn(path) { path.contains(preferred) }) {
+    Some(path) => Some(path)
+    None => found.get(0)
   }
 }
 
