@@ -20,19 +20,20 @@ MBTX_INSTALL="$MOON_BIN/mbtx-install"
 TMPBIN="$(mktemp -d)"
 trap 'rm -rf "$TMPBIN"' EXIT
 
-# moon's own log lines look different across toolchain versions
-# ("INFO ..." on older moon, "Finished. moon: ran N tasks" on newer) —
-# match either as a marker that moon's output leaked into ours.
+# quiet mode: only mbtx-install's own lines (Installed/warning) are shown;
+# moon's log format varies across toolchains so assert on OUR lines instead.
 install_log="$("$MBTX_INSTALL" "$SCRIPTS/hello.mbtx" --bin "$TMPBIN" 2>&1)"
 echo "$install_log" | grep -q "Installed" || fail "hello: missing 'Installed' line: $install_log"
-echo "$install_log" | grep -qE "INFO |moon: ran" && fail "quiet mode leaked moon logs: $install_log"
+echo "$install_log" | grep -vE "^(Installed|warning:)" | grep -q . \
+  && fail "quiet mode leaked moon logs: $install_log"
 out="$("$TMPBIN/hello")"
 [ "$out" = "hello from mbtx-install e2e" ] || fail "hello: unexpected output: $out"
 echo "e2e: hello ok (quiet by default)"
 
-# -v/--verbose passes moon's logs through.
+# -v/--verbose passes moon's logs through (i.e. produces more than our lines).
 verbose_log="$("$MBTX_INSTALL" "$SCRIPTS/hello.mbtx" --bin "$TMPBIN" -v 2>&1)"
-echo "$verbose_log" | grep -qE "INFO |moon: ran" || fail "verbose mode hid moon logs: $verbose_log"
+extra="$(echo "$verbose_log" | grep -vE "^(Installed|warning:)")"
+[ -n "$extra" ] || fail "verbose mode hid moon logs: $verbose_log"
 echo "e2e: verbose ok"
 
 # Installing records the name in the manifest (~/.mbtx-install/config.json).
