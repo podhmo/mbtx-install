@@ -19,7 +19,7 @@ This file tracks actionable tasks only; completed work is swept to
   workdir(`~/.mbtx-install/<key>`)の削除 + manifest エントリ削除。
   暫定策として README の「Removing an installed command」に
   手動削除手順は記載済み。
-- [ ] **`--version` の追加(中)** ([usability-report.md](docs/ja/usability-report.md) F-6,
+- [x] **`--version` の追加(中)** ([usability-report.md](docs/ja/usability-report.md) F-6,
   PR #14 コメントで中優先度と了承):
   `unexpected argument '--version'` でツール自身のバージョン確認手段がない。
   `.mbtx` はメタデータを持てない(front-matter は import ブロックのみ)ため、
