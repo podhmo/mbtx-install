@@ -57,6 +57,22 @@ async fn install(config : Config) -> Int {
     None => home + "/.moon/bin"
   }
   let profile = if config.release { "release" } else { "debug" }
+  let dest = bin_dir + "/" + name
+  let manifest = manifest_path(home)
+
+  // ---- overwrite guard: never clobber a binary we did not install ----
+  if @fs.exists(dest) {
+    let installs = load_manifest(manifest)
+    guard overwrite_allowed(name, installs, true) else {
+      eprintln(
+        "error: '\{dest}' already exists and was not installed by mbtx-install",
+      )
+      eprintln(
+        "hint: choose a different name with -o, or remove '\{dest}' manually",
+      )
+      return 1
+    }
+  }
 
   // ---- moon must be on PATH ----
   if !program_on_path("moon") {
@@ -118,7 +134,6 @@ async fn install(config : Config) -> Int {
       return 1
     }
   }
-  let dest = bin_dir + "/" + name
   let data = @fs.read_file(artifact) catch {
     err => {
       eprintln("error: cannot read artifact '\{artifact}': \{err}")
@@ -134,6 +149,7 @@ async fn install(config : Config) -> Int {
   @fs.chmod(dest, 0o755) catch {
     _ => ()
   }
+  record_install(manifest, name, abs, bin_dir)
   if !dir_on_path(bin_dir) {
     eprintln(
       "warning: '\{bin_dir}' is not on PATH; '\{name}' will not run as a command",

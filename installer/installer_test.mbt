@@ -83,3 +83,37 @@ test "resolve_link_target anchors relative paths at the script dir" {
     "/scripts/./cache/x.exe",
   )
 }
+
+///|
+test "manifest_path joins home and config.json" {
+  assert_eq(
+    @installer.manifest_path("/home/u"),
+    "/home/u/.mbtx-install/config.json",
+  )
+}
+
+///|
+test "overwrite_allowed requires a manifest record when dest exists" {
+  let installs : Map[String, Json] = Map([])
+  installs["hello"] = Json::object(Map([]))
+  assert_eq(@installer.overwrite_allowed("fresh", installs, false), true)
+  assert_eq(@installer.overwrite_allowed("fresh", installs, true), false)
+  assert_eq(@installer.overwrite_allowed("hello", installs, true), true)
+}
+
+///|
+async test "record_install then load_manifest round-trips" {
+  let path = "/tmp/mbtx-install-manifest-test/config.json"
+  @installer.record_install(path, "hello", "/abs/hello.mbtx", "/tmp/bin")
+  @installer.record_install(path, "argv", "/abs/argv.mbtx", "/tmp/bin")
+  let installs = @installer.load_manifest(path)
+  assert_eq(installs.contains("hello"), true)
+  assert_eq(installs.contains("argv"), true)
+  match installs.get("hello") {
+    Some(Object(entry)) => {
+      assert_true(entry.get("source") is Some(String("/abs/hello.mbtx")))
+      assert_true(entry.get("bin") is Some(String("/tmp/bin")))
+    }
+    _ => fail("manifest entry for 'hello' is missing or not an object")
+  }
+}
