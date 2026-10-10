@@ -32,7 +32,9 @@ $ moon install podhmo/mbtx-install/cmd/mbtx-install
 ## Usage
 
 ```console
-$ mbtx-install <path.mbtx> [-o|--name <cmd>] [--bin <dir>] [--release]
+$ mbtx-install <path.mbtx> [-o|--name <cmd>] [--bin <dir>] [--release] [-v|--verbose]
+$ mbtx-install --list
+hello -> /home/u/tools/hello.mbtx
 ```
 
 ```console
@@ -46,6 +48,8 @@ $ mygrep -n TODO src/*.mbt
 | `-o`, `--name <cmd>` | installed command name (default: file basename without `.mbtx`) |
 | `--bin <dir>` | install directory (default: `~/.moon/bin`) |
 | `--release` | build the release profile (default: debug build) |
+| `-v`, `--verbose` | show moon's build logs (default: quiet, errors still shown) |
+| `--list` | list installed commands recorded in the manifest (takes no path) |
 
 ## How it works
 

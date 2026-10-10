@@ -11,7 +11,19 @@ pub async fn run(argv : ArrayView[String]) -> Int {
       return 2
     }
   }
-  install(config)
+  match (config.list, config.path) {
+    (true, Some(_)) => usage_error("--list cannot be combined with <path>")
+    (true, None) => {
+      guard @env.get_env_var("HOME") is Some(home) else {
+        eprintln("error: HOME is not set; cannot resolve the manifest")
+        return 1
+      }
+      list_installs(manifest_path(home))
+      0
+    }
+    (false, None) => usage_error("missing required argument: <path>")
+    (false, Some(_)) => install(config)
+  }
 }
 
 ///|
@@ -24,19 +36,22 @@ fn usage_error(msg : String) -> Int {
 ///|
 async fn install(config : Config) -> Int {
   // ---- validate the .mbtx argument (usage errors) ----
-  if !config.path.has_suffix(".mbtx") {
-    return usage_error("not a .mbtx file: '\{config.path}'")
+  guard config.path is Some(path) else {
+    return usage_error("missing required argument: <path>")
   }
-  let abs = @fs.realpath(config.path) catch {
-    _ => return usage_error("file not found: '\{config.path}'")
+  if !path.has_suffix(".mbtx") {
+    return usage_error("not a .mbtx file: '\{path}'")
+  }
+  let abs = @fs.realpath(path) catch {
+    _ => return usage_error("file not found: '\{path}'")
   }
   if !(@fs.kind(abs) is Regular) {
     return usage_error("not a regular file: '\{abs}'")
   }
   // the default command name comes from the path the user typed, not the
   // realpath — a symlink should install under its own basename
-  guard command_name(basename(config.path)) is Some(derived_name) else {
-    return usage_error("cannot derive a command name from '\{config.path}'")
+  guard command_name(basename(path)) is Some(derived_name) else {
+    return usage_error("cannot derive a command name from '\{path}'")
   }
   let name = match config.name {
     Some(n) =>
