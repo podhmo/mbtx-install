@@ -52,6 +52,11 @@ This file tracks actionable tasks only; completed work is swept to
   moon 出力の失敗種別検出は入れず、固定メッセージの文言だけ
   「if dependency resolution failed, `moon update` may fix it」
   のような柔らかい英語の文面に変える。
+- [ ] **`--version` の追加(中)** ([usability-report.md](docs/ja/usability-report.md) F-6,
+  PR #14 コメントで中優先度と了承):
+  `unexpected argument '--version'` でツール自身のバージョン確認手段がない。
+  `.mbtx` はメタデータを持てない(front-matter は import ブロックのみ)ため、
+  `moon.pkg` の version をビルド時に埋め込む方式で。issue 報告時に必要。
 - [ ] **(low) PATH 警告は絶対パスで表示** ([usability-report.md](docs/ja/usability-report.md) F-9):
   `--bin relbin` のような相対指定だと警告が相対パスのまま出て、
   PATH に何を足すべきか分かりにくい。
