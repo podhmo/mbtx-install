@@ -124,7 +124,7 @@ mbtx-install <path-or-url> [-o|--name <cmd>] [--bin <dir>] [--release]
 3. **アンインストール / 一覧 / キャッシュクリア**: `mbtx-install --uninstall mytool`(バイナリ削除 + 管理下キャッシュ削除)。インストール時にメタファイル(管理下マーカ)を残すかが論点。
 4. **shebang 対応**: ~~`.mbtx` 先頭に shebang を書けるか~~ → 実機検証済みで**不可**(`#` は字句エラー)。直接実行にはバイナリ化必須のため、本項はクローズ。
 5. **upstream 連携**: `moon install` の `.mbtx` 対応を upstream に提案するか。対応されればルートAのコピー処理ごと置き換えられる可能性。
-6. **Windows 対応**: `*.exe` suffix とネイティブツールチェーン問題(MOON_CC shim or MSVC)。→ **実機調査済み([windows-report.md](windows-report.md), 2026-10-10)**: `moonbitlang/async` が `_MSC_VER` 強制のため本体・async 依存スクリプトとも MSVC 必須が判明。MinGW shim は async 不使用スクリプトのみ有効。方針は MSVC 必須 + WSL 記述の併用、残タスク(パス差分実装)は TODO.md と [issue #3](https://github.com/podhmo/mbtx-install/issues/3) で管理。初期版の対象プラットフォームは Linux/macOS のまま。
+6. **Windows 対応**: `*.exe` suffix とネイティブツールチェーン問題(MOON_CC shim or MSVC)。→ **実機調査済み([windows-report.md](windows-report.md), 2026-10-10)**: `moonbitlang/async` が `_MSC_VER` 強制のため本体・async 依存スクリプトとも MSVC 必須が判明。MinGW shim は async 不使用スクリプトのみ有効。方針は MSVC 必須 + WSL 記述の併用、残タスク(パス差分実装)は [issue #3](https://github.com/podhmo/mbtx-install/issues/3) で管理(タスク案は PR #27 のコメントに TODO.md 形式で提示)。初期版の対象プラットフォームは Linux/macOS のまま。
 7. **キャッシュ名へのバージョン suffix**: 必要になれば `github-foo/bar+v0.1.9+release` 風に `+` 区切りでディレクトリ名を伸ばす案。初期版では不要と判断 → **[issue #4](https://github.com/podhmo/mbtx-install/issues/4) で追跡**。
 
 ## 決定事項まとめ

@@ -47,33 +47,8 @@ design.md の「未決事項」から。各項目の詳細はリンク先に置�
   候補は `///|` コメント内の独自キー(`/// mbtx: name=foo`)。必要性が出てから。
 - [ ] **upstream への `moon install .mbtx` 対応提案** ([design.md](docs/ja/design.md) 未決事項5):
   upstream が受理すれば本ツールのコピー処理ごと置き換えられる可能性。
-- [-] **Windows 対応** ([#3](https://github.com/podhmo/mbtx-install/issues/3)):
-  実機調査済み([windows-report.md](docs/ja/windows-report.md))。方針:
-  MSVC 必須 + WSL 記述の併用(MinGW shim は本体が通らない)。残るのは
-  `installer/` のパス差分実装とドキュメント明記。
-  - [ ] **home 解決を `MOON_HOME → HOME → USERPROFILE` 順に**:
-    Windows native では `HOME` 未設定(`USERPROFILE` のみ)で現行コードは
-    exit 1 する(実機確認)。
-  - [ ] **cache_key を Windows パス対応に**:
-    `\`→`/` 正規化 → `:`→`-` → `/`→`-`。現行は `C:\...` の `:` と `\` が
-    残り、Windows でディレクトリ名が違法になる。
-  - [ ] **basename/dirname/is_valid_name/resolve_link_target の区切り対応**:
-    `\` 区切りパス、ドライブレター `C:`、UNC `\\`、Windows 違法文字
-    (`<>\:"/\\|?*`)を入口で正規化・判定。
-  - [ ] **インストール名に `.exe` を付ける(Windows)**:
-    `moon install` 実機確認で `main.exe` として配置。`<bin>/<name>` の
-    ままだと実行不可。manifest の記録名は `name`、実ファイルは
-    `name.exe` とする案。
-  - [ ] **PATH 分割を `;` に + `program_on_path` の `.exe`/`PATHEXT` 対応**。
-  - [ ] **プラットフォーム判定手段を 1 点追加**(`OS=Windows_NT` /
-    `PATHEXT` 存在 or moonbitlang/core の環境情報)。
-  - [ ] **README の Platforms 記述を更新**:
-    「Windows は MSVC Build Tools 必須(または WSL 経由)」に書き換え、
-    issue #3 の「制限事項」表現を解消。
-  - [ ] **e2e の Windows 版**(`run.ps1` 等)または統一 runner。
-  - [x] **MSVC 実機検証**:`moon install ./cmd/mbtx-install` 完走
-    (mbtx-install.exe 938KB)。`cl.exe` は PATH にあれば自動検出。
-    実行時の Unix 前提バグ(HOME/basename)も実機再現済み
-    ([windows-report.md](docs/ja/windows-report.md) §1.4.1)。
+- [ ] **Windows 対応** ([#3](https://github.com/podhmo/mbtx-install/issues/3)):
+  `*.exe` suffix とネイティブツールチェーン問題(MOON_CC shim or MSVC)。
+  制限事項として issue で追跡中。
 - [ ] **キャッシュ名への `+v<ver>+<profile>` サフィックス** ([#4](https://github.com/podhmo/mbtx-install/issues/4)):
   必要になればディレクトリ名を `+` 区切りで拡張する案。issue で追跡中。
