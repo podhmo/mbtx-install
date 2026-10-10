@@ -31,8 +31,8 @@ pub fn cache_key(abs_path : String) -> String {
 /// `mytool.mbtx` -> `mytool`. Returns `None` when the name does not end
 /// with `.mbtx` or the remaining stem is empty.
 pub fn command_name(base : String) -> String? {
-  guard base.has_suffix(".mbtx") else { None }
-  let stem = base[:base.length() - 5].to_owned()
+  guard base.strip_suffix(".mbtx") is Some(stem) else { None }
+  let stem = stem.to_owned()
   if stem.is_empty() || stem.contains("/") {
     None
   } else {
