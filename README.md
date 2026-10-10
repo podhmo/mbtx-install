@@ -10,23 +10,16 @@ experience for MoonBit scripts.
 
 Requires the `moon` toolchain on `PATH`.
 
+From [mooncakes](https://mooncakes.io/docs/podhmo/mbtx-install):
+
+```console
+$ moon install podhmo/mbtx-install
+```
+
 From a checkout of this repository:
 
 ```console
 $ moon install ./cmd/mbtx-install
-```
-
-Directly from git:
-
-```console
-$ moon install https://github.com/podhmo/mbtx-install cmd/mbtx-install
-```
-
-Once the module is published on [mooncakes](https://mooncakes.io), the
-registry form works too:
-
-```console
-$ moon install podhmo/mbtx-install/cmd/mbtx-install
 ```
 
 ## Usage
