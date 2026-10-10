@@ -44,6 +44,21 @@
 - **`moon lint` はこのツールチェーン(0.1.20260920)に存在しない**。`moon lint` を呼ぶと外部実行ファイル `moon-lint` を PATH から探しにいき、未導入なら `no such subcommand` でエラー。docs 上の "lint" 記述は warn-list の警告名 `syntax_lint` (warning 63) を指すだけで、lint サブコマンドではない。→ lint は現状 `.mbtx` 運用の検討対象外(コメントの補足通り)。
 - check/build は `.mbtx` をそのまま受理するため、CI 等で品質担保するなら `moon check file.mbtx`(と `moon test`)を使うのが実用的。
 
+### 依存のバージョン固定 (実機検証済み)
+
+参照: <https://docs.moonbitlang.com/ja/latest/toolchain/moon/script-mode.html>
+
+- **直依存の固定は front-matter の `@version` で可能**(`"moonbitlang/x@0.5.3/json5"` → 実際に `moonbitlang/x@0.5.3` が解決・ダウンロードされることを確認)。バージョンは厳密指定のみで、範囲演算子(`>=` 等)は存在しない。
+- 同一モジュールから import する全パッケージは同一バージョン必須(公式仕様)。
+- バージョン省略時はローカルインデックスの最新版が使われる → **同一 `.mbtx` でも時期・マシンによってビルドされる依存バージョンが変わりうる**(再現性は script 側の `@version` 記述に委ねられる)。
+- **`moonbit.deps` は `.mbtx` では参照されない**。隣接ファイルに `moonbitlang/x = "0.5.3"` と書いても front-matter 無指定の import は最新版(0.5.5)が解決された。これは `.mbt.md`(literate ドキュメント)ファイル向けの機構で、「モジュール依存だけ宣言して Moon に import を自動生成させる」用途。
+- **未使用 import は許可される**(Go と違い unused-import エラーなし)。ただし完全に未使用のモジュールは解決・ダウンロードすらスキップされる(実機確認)。
+- **推移的依存は「使用している import で pin すれば」制約可能**。解決は全制約(スクリプトの front-matter pin + 依存モジュールの moon.mod deps)の **最大バージョン** を採用する方式:
+  - `moonbitlang/protoc-gen-mbt@0.2.0`(依存: `async@0.20.3`)+ front-matter `async@0.22.4` → **0.22.4** が解決(pin の引き上げは効く)
+  - `moonbitlang/openseek_tools@0.2.0`(依存: `async@0.22.4`)+ front-matter `async@0.20.2` → **0.22.4** が解決(pin の引き下げは**警告なしに無視**される)
+  - つまり推移依存を**新しい方へ pin できるが、古い方へ pin できない**(他の要求が下限として効き、コンフリクト検出・警告ともに無し)
+- mbtx-install 観点: 依存解決は `moon build` に丸投げなので、front-matter `@version` は**ツール側の追加実装なしでそのまま効く**。ただし「省略=最新・pin=下限としてのみ効く」ため、bit 再現性が欲しい場合は `.mbtx` 側だけでは完全に担保できない点に注意(lockfile 相当の仕組みは script mode に存在しない)。
+
 ### メタデータ記述について (要調査だった項目)
 
 - description / author 等のメタデータ用プラグマは**現状存在しない**。script mode に任意メタデータを埋め込む公式構文は見つからなかった。
