@@ -28,13 +28,11 @@ pub async fn load_manifest(String) -> Map[String, Json]
 
 pub fn manifest_path(String) -> String
 
-pub fn overwrite_allowed(String, Map[String, Json], Bool) -> Bool
+pub fn overwrite_allowed(String, installs~ : Map[String, Json], dest_exists~ : Bool) -> Bool
 
-pub fn parse_args(ArrayView[String]) -> Config raise
+pub async fn record_install(String, name~ : String, source~ : String, bin_dir~ : String) -> Unit
 
-pub async fn record_install(String, String, String, String) -> Unit
-
-pub fn resolve_link_target(String, String) -> String
+pub fn resolve_link_target(String, script_dir~ : String) -> String
 
 pub async fn run(ArrayView[String]) -> Int
 
@@ -51,6 +49,7 @@ pub struct Config {
   verbose : Bool
   list : Bool
 }
+pub fn Config::parse(ArrayView[String]) -> Self raise
 
 // Type aliases
 
