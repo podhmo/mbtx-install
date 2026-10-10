@@ -25,6 +25,12 @@ out="$("$TMPBIN/hello")"
 [ "$out" = "hello from mbtx-install e2e" ] || fail "hello: unexpected output: $out"
 echo "e2e: hello ok"
 
+# Installing records the name in the manifest (~/.mbtx-install/config.json).
+MANIFEST="$HOME/.mbtx-install/config.json"
+[ -f "$MANIFEST" ] || fail "manifest not created: $MANIFEST"
+grep -q '"hello"' "$MANIFEST" || fail "manifest does not record 'hello'"
+echo "e2e: manifest ok"
+
 "$MBTX_INSTALL" "$SCRIPTS/argv-echo.mbtx" --bin "$TMPBIN" >/dev/null
 out="$("$TMPBIN/argv-echo" alpha "b c")"
 expected="arg[0]=$TMPBIN/argv-echo
@@ -43,5 +49,14 @@ echo "e2e: dep-json5 ok (external mooncakes dep resolved)"
 out="$("$TMPBIN/hello")"
 [ "$out" = "hello from mbtx-install e2e" ] || fail "reinstall: unexpected output: $out"
 echo "e2e: reinstall ok"
+
+# 5. A binary mbtx-install did not install must not be overwritten.
+printf '#!/bin/sh\nexit 0\n' > "$TMPBIN/foreign"
+chmod +x "$TMPBIN/foreign"
+if "$MBTX_INSTALL" "$SCRIPTS/hello.mbtx" --bin "$TMPBIN" -o foreign >/dev/null 2>&1; then
+  fail "overwrite guard: expected refusal for a foreign binary"
+fi
+[ -x "$TMPBIN/foreign" ] || fail "overwrite guard clobbered the foreign binary"
+echo "e2e: overwrite guard ok"
 
 echo "e2e: all smoke tests passed"

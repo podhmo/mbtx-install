@@ -5,4 +5,8 @@ import {
   "moonbitlang/core/env",
 }
 
+import {
+  "moonbitlang/async",
+} for "test"
+
 supported_targets = "+native"
