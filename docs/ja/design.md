@@ -108,7 +108,7 @@ mbtx-install <path-or-url> [-o|--name <cmd>] [--bin <dir>] [--release]
 
 - 通常の MoonBit モジュールとして構成し、`cmd/mbtx-install` に `pkgtype(kind: "executable")` の main パッケージを置く。
 - `moon install` で自己インストール可能にする(README に `moon install podhmo/mbtx-install/cmd/mbtx-install` or git URL 手順を記載)。
-- 内部処理(プロセス起動、ファイルコピー、パス・環境変数解決)には `moonbitlang/async` 系の `@shell.Cmd` や `@fs` を使う方針(エージェント向け自動化の既定構成と揃える)。
+- 内部処理(プロセス起動、ファイルコピー、パス・環境変数解決)には `moonbitlang/async` 系の `@shell.Cmd` や `@fs` を使う方針(エージェント向け自動化の既定構成と揃える)。子プロセス起動 API は `moonbitlang/async/process` の `run` / `collect_output` / `spawn` が揃っていることを実機の vendor ソースで確認済み。
 
 ## エラーハンドリング方針
 

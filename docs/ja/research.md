@@ -35,6 +35,7 @@
   - `moonx script.mbtx` (後述。常に Wasm)
 - `moon test script.mbtx` で単体テスト可能(テスト用エントリは `main` を実行しない)。
 - `moon check script.mbtx` / `moon build script.mbtx` もプロジェクト外・単体でそのまま動く(実機確認)。
+- CLI 引数: `@env.args()`(`moonbitlang/core/env`)で argv 取得可(実機確認)。native バイナリ化すると通常の C argv がそのまま渡り、`arg[0]` = バイナリパス、以降に引数。ただし `moon run`/moonx(Wasm)経由だと `arg[0]` は wasm ファイルパスになるので、インストール後(native)と開発中(wasm)で argv 解釈がズレうる点に注意。
 
 ### テスト・lint・check と `.mbtx` (PR コメント受領分、実機検証済み)
 
