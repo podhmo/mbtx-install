@@ -12,8 +12,8 @@ pub fn manifest_path(home : String) -> String {
 /// when `name` is recorded in the manifest (mbtx-install installed it).
 pub fn overwrite_allowed(
   name : String,
-  installs : Map[String, Json],
-  dest_exists : Bool,
+  installs~ : Map[String, Json],
+  dest_exists~ : Bool,
 ) -> Bool {
   !dest_exists || installs.contains(name)
 }
@@ -89,9 +89,9 @@ pub async fn list_installs(path : String) -> Unit {
 /// name, so the warning keeps the inconsistency visible.
 pub async fn record_install(
   path : String,
-  name : String,
-  source : String,
-  bin_dir : String,
+  name~ : String,
+  source~ : String,
+  bin_dir~ : String,
 ) -> Unit {
   let installs = load_manifest(path)
   let entry : Map[String, Json] = Map([])

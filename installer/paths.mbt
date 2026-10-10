@@ -85,7 +85,7 @@ pub fn find_link_target(output : String) -> String? {
 /// Dry-run prints paths relative to the moon workspace directory (the
 /// directory containing the `.mbtx` when outside a project), so relative
 /// candidates are anchored at `script_dir`.
-pub fn resolve_link_target(candidate : String, script_dir : String) -> String {
+pub fn resolve_link_target(candidate : String, script_dir~ : String) -> String {
   if candidate.has_prefix("/") {
     candidate
   } else {

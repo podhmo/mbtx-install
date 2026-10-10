@@ -80,7 +80,7 @@ async fn Config::install(self : Config) -> Int {
   // ---- overwrite guard: never clobber a binary we did not install ----
   if @fs.exists(dest) {
     let installs = load_manifest(manifest)
-    guard overwrite_allowed(name, installs, true) else {
+    guard overwrite_allowed(name, installs~, dest_exists=true) else {
       eprintln(
         "error: '\{dest}' already exists and was not installed by mbtx-install",
       )
@@ -112,7 +112,7 @@ async fn Config::install(self : Config) -> Int {
   }
   let build_args = [..flags, abs]
   let dry_args = [..flags, "--dry-run", abs]
-  let artifact_hint = locate_artifact_hint(dirname(abs), dry_args)
+  let artifact_hint = locate_artifact_hint(dirname(abs), dry_args~)
 
   // ---- real build: -v passes moon's logs through, otherwise they are
   // captured and only replayed on failure ----
@@ -146,7 +146,7 @@ async fn Config::install(self : Config) -> Int {
   let artifact = match artifact_hint {
     Some(path) if @fs.exists(path) => path
     _ =>
-      match find_artifact(workdir, profile) {
+      match find_artifact(workdir, profile~) {
         Some(path) => path
         None => {
           eprintln(
@@ -179,7 +179,7 @@ async fn Config::install(self : Config) -> Int {
   @fs.chmod(dest, 0o755) catch {
     _ => ()
   }
-  record_install(manifest, name, abs, bin_dir)
+  record_install(manifest, name~, source=abs, bin_dir~)
   if !dir_on_path(bin_dir) {
     eprintln(
       "warning: '\{bin_dir}' is not on PATH; '\{name}' will not run as a command",
@@ -194,14 +194,14 @@ async fn Config::install(self : Config) -> Int {
 /// Returns `None` when the dry-run fails or no link line is found.
 async fn locate_artifact_hint(
   script_dir : String,
-  dry_args : Array[String],
+  dry_args~ : Array[String],
 ) -> String? {
   let out = @shell.Cmd("moon", dry_args, stdout=Capture, stderr=Capture).output() catch {
     _ => return None
   }
   let text = out.stdout() + "\n" + out.stderr()
   match find_link_target(text) {
-    Some(candidate) => Some(resolve_link_target(candidate, script_dir))
+    Some(candidate) => Some(resolve_link_target(candidate, script_dir~))
     None => None
   }
 }
@@ -209,7 +209,7 @@ async fn locate_artifact_hint(
 ///|
 /// Fallback artifact search: collect every `*.exe` under `workdir`,
 /// preferring the one under `native/<profile>/`.
-async fn find_artifact(workdir : String, profile : String) -> String? {
+async fn find_artifact(workdir : String, profile~ : String) -> String? {
   let found : Array[String] = []
   @fs.walk(workdir, (dir, entries) => {
     for entry in entries {
