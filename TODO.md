@@ -40,10 +40,12 @@ This file tracks actionable tasks only; completed work is swept to
   現状は realpath 解決後のベース名でインストールされるため
   `linked-script.mbtx` → `hello-no-deps` ができる。名決定を渡したパスの
   basename に変える(もしくは README に realpath 挙動を明記)。
-- [ ] **ビルド失敗時の hint が文脈不問な問題** ([usability-report.md](docs/ja/usability-report.md) F-4):
+- [ ] **ビルド失敗時の hint を親切な文言にする** ([usability-report.md](docs/ja/usability-report.md) F-4,
+  PR #14 コメントで方針了承):
   現状は失敗理由にかかわらず「`moon update` を実行」を hint として出すため、
-  ユーザーの `.mbtx` の単なるコンパイルエラーにも誤誘導する。問題の記録のみで
-  解決方針は未決(失敗種別の判定が困難)。
+  ユーザーの `.mbtx` の単なるコンパイルエラーにも誤誘導する。
+  失敗種別の検出は難しいので、文言を条件付きの注意書きに留める
+  (例: 「依存の解決に失敗した場合は `moon update` を試してみてください」)。
 - [ ] **(low) PATH 警告は絶対パスで表示** ([usability-report.md](docs/ja/usability-report.md) F-9):
   `--bin relbin` のような相対指定だと警告が相対パスのまま出て、
   PATH に何を足すべきか分かりにくい。
