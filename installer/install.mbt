@@ -138,9 +138,7 @@ async fn install(config : Config) -> Int {
   }
   if status != 0 {
     eprintln("error: `moon build` failed with exit code \{status}")
-    eprintln(
-      "hint: if dependency resolution failed, `moon update` may fix it",
-    )
+    eprintln("hint: if dependency resolution failed, `moon update` may fix it")
     return status
   }
 
