@@ -45,28 +45,18 @@ pub async fn load_manifest(path : String) -> Map[String, Json] {
 /// Format the installs map as sorted `name -> source` lines for `--list`.
 /// Entries without a readable `source` render as the bare name.
 pub fn format_installs(installs : Map[String, Json]) -> Array[String] {
-  let names : Array[String] = []
-  for name, _ in installs {
-    names.push(name)
-  }
+  let names = installs.keys().to_array()
   names.sort()
-  let lines : Array[String] = []
-  for name in names {
-    let source = match installs.get(name) {
+  [
+    for name in names => match installs.get(name) {
       Some(Object(entry)) =>
         match entry.get("source") {
-          Some(String(s)) => s
-          _ => ""
+          Some(String(s)) if !s.is_empty() => "\{name} -> \{s}"
+          _ => name
         }
-      _ => ""
+      _ => name
     }
-    if source.is_empty() {
-      lines.push(name)
-    } else {
-      lines.push(name + " -> " + source)
-    }
-  }
-  lines
+  ]
 }
 
 ///|
@@ -76,9 +66,7 @@ pub async fn list_installs(path : String) -> Unit {
   if lines.is_empty() {
     println("(no installs recorded)")
   } else {
-    for line in lines {
-      println(line)
-    }
+    lines.each(println)
   }
 }
 
