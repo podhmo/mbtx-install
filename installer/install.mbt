@@ -33,8 +33,10 @@ async fn install(config : Config) -> Int {
   if !(@fs.kind(abs) is Regular) {
     return usage_error("not a regular file: '\{abs}'")
   }
-  guard command_name(basename(abs)) is Some(derived_name) else {
-    return usage_error("cannot derive a command name from '\{abs}'")
+  // the default command name comes from the path the user typed, not the
+  // realpath — a symlink should install under its own basename
+  guard command_name(basename(config.path)) is Some(derived_name) else {
+    return usage_error("cannot derive a command name from '\{config.path}'")
   }
   let name = match config.name {
     Some(n) =>
