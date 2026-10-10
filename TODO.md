@@ -35,6 +35,11 @@ This file tracks actionable tasks only; completed work is swept to
 - [ ] **e2e: manifest 存在確認の追加** ([usability-report.md](docs/ja/usability-report.md) コメント受領):
   `e2e/run.sh` でインストール後に `~/.mbtx-install/config.json` の生成を
   確認する程度をスモークに加える(manifest 実装後)。
+- [ ] **symlink 渡し時のコマンド名は渡したパスの basename にする**
+  ([usability-report.md](docs/ja/usability-report.md) F-5, PR #14 コメントで方針了承):
+  現状は realpath 解決後のベース名でインストールされるため
+  `linked-script.mbtx` → `hello-no-deps` ができる。名決定を渡したパスの
+  basename に変える(もしくは README に realpath 挙動を明記)。
 - [ ] **ビルド失敗時の hint が文脈不問な問題** ([usability-report.md](docs/ja/usability-report.md) F-4):
   現状は失敗理由にかかわらず「`moon update` を実行」を hint として出すため、
   ユーザーの `.mbtx` の単なるコンパイルエラーにも誤誘導する。問題の記録のみで
