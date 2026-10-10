@@ -1,0 +1,126 @@
+# 調査レポート: `.mbtx` のインストール可能性
+
+`mbtx-install` の設計に必要な事実確認と実験の記録。随時追記する調査メモ。
+
+- 調査日: 2026-10-10
+- 環境: `moon 0.1.20260920` / `moonx` 同梱 / Linux x86_64 (Ubuntu 22.04)
+- 一次情報: `vendor/moonbit-docs` の [script-mode](https://docs.moonbitlang.com/en/latest/toolchain/moon/script-mode.html) 公式ドキュメント、`moon --help` 系、実機実験
+
+---
+
+## 1. `.mbtx` (script mode) の仕様
+
+公式ドキュメント + 実験で確認できた仕様。
+
+- `.mbtx` = 先頭の `import { ... }` ブロック(省略可) + 通常の MoonBit コード。**トップレベル式は存在せず、`fn main` がエントリポイント**。つまり構造的には「main パッケージの 1 ファイル版」に近い。
+- `main` のバリエーションは 3 種:
+  - `fn main { }` (同期・エラー伝播なし)
+  - `fn main raise { }` (同期・チェック済みエラー伝播あり)
+  - `async fn main { }` (非同期。`moonbitlang/async` の import が必須。`raise`/`await` は付けない)
+- import ブロックの構文:
+  ```mbtx
+  import {
+    "moonbitlang/core/list" @ls,        // @alias は省略可
+    "moonbitlang/async@0.20.2/fs",      // モジュール名に @version を付けられる
+    "moonbitlang/core/array" *,         // * で import-all (全定義をスコープへ)
+  }
+  ```
+  - `@version` はモジュール(module)単位。同じモジュールの全 import は同一バージョンであること。
+  - バージョン省略時は「ローカルレジストリインデックスが知っている最新版」が使われる。
+  - `*` (import-all) は `.mbtx` 専用構文。通常パッケージ(`moon.pkg`)では使えない。
+- 実行方法:
+  - `moon run script.mbtx [args...]`
+  - `cat script.mbtx | moon run -` (stdin)
+  - `moon run -e 'fn main { ... }'` (インライン)
+  - `moonx script.mbtx` (後述。常に Wasm)
+- `moon test script.mbtx` で単体テスト可能(テスト用エントリは `main` を実行しない)。
+
+### メタデータ記述について (要調査だった項目)
+
+- description / author 等のメタデータ用プラグマは**現状存在しない**。script mode に任意メタデータを埋め込む公式構文は見つからなかった。
+- 依存関係の記述は `import` ブロックの `@version` が事実上の公式仕様であり、これに追従すればよい。
+- 独自メタデータ(例: コマンド名上書き、説明文)が欲しくなった場合は、MoonBit のコメント形式に倣って `///|` ブロック内に独自キーを置く方式が自然(例: `/// mbtx: name=foo`)。デザインドック側で判断。
+
+## 2. `moon build` / `moon run` を `.mbtx` に直接かけた場合
+
+実験: `hello.mbtx` (`fn main { println("hello from mbtx") }`) に対して。
+
+```bash
+moon build --target native --release hello.mbtx
+```
+
+- 成果物: `_build/hello.mbtx/native/release/build/single/single.exe` (約 473KB)
+- 生成バイナリは**素で実行可能**。`ldd` では `libc` のみに依存。スタンドアロンに近い。
+- 単体ファイル時の `--target-dir` デフォルトは `<source-dir>/_build/<file-name>`。**`--target-dir` を指定すればビルド成果物を完全に任意ディレクトリへ隔離できる**(スクリプトの置き場所を汚さない)。実験済み:
+  ```bash
+  moon build --target native --release --target-dir /tmp/mbtx-cache /abs/path/dep.mbtx
+  # → /tmp/mbtx-cache/dep.mbtx/native/release/build/single/single.exe
+  ```
+- パス規則: `<target-dir>/<file-name>/native/release/build/single/single.exe`。`single` は単体ファイル用の仮想パッケージ名と思われる(実装詳細なのでバージョンアップで変わり得る。`*.exe` を探索するフォールバックを設計に入れると安全)。
+- `--target native` を省略した場合のデフォルトは Wasm(`.wasm` 出力)。`moon run` は moonrun 経由の Wasm 実行がデフォルト。
+- 絶対パス・別ディレクトリからの `moon build <abspath>.mbtx` も動作確認済み。
+
+## 3. `moon install` の挙動
+
+実験: `moon new testproj` (moon 0.1.20260920 生成の標準構造) に対して `moon install ./cmd/main`。
+
+- 結果: `Success: Installed 'main' to '/home/ubuntu/.moon/bin/main'`。
+- **インストールされるコマンド名 = パッケージのディレクトリ名**(`cmd/main` → `main`)。
+- 再インストールは無条件に成功(上書き動作。エラーにならない)。
+- 配置先のデフォルトは `~/.moon/bin/`(`--bin <DIR>` で変更可)。
+- `moon install` の SOURCE 解釈順: 1. ローカルパス → 2. git URL → 3. レジストリパス。git URL + `PATH_IN_REPO` や GitHub permalink も可。
+
+### `moon install` に `.mbtx` を直接渡した場合
+
+- プロジェクト外: `moon install ./hello.mbtx` → `Error: not in a Moon project`
+- プロジェクト内に `.mbtx` を置いても: `Error: Path ... is not a main package (is-main: true required)`
+- つまり **`moon install` は `.mbtx` を直接受理しない**。`.mbtx` は「is-main でない仮想パッケージ `single`」として扱われる模様。
+- 通常パッケージで is-main 相当を立てるには `moon.pkg` に `pkgtype(kind: "executable")` を書く(`is-main` フィールド自体は deprecated)。
+
+## 4. `moonx` の位置づけ
+
+`moonx --help` より。
+
+- `moonx script.mbtx` で **インストールせず `.mbtx` を直接実行できる**(事実上 `deno run` 相当)。実機でも動作確認済み。
+- ただし **`.mbtx` 実行は常に Wasm バックエンド**(`--target` 選択肢に native はあるが "deprecated and scheduled for removal after 2026-09-14" と明記)。
+- `moonx user/module/package[@version]` はレジストリ実行(npx 的)。ローカルパッケージは対象外。
+- 結論: moonx は「その場実行」の解だが、ネイティブバイナリを永続配置する用途は満たさない。mbtx-install の存在意義は残る。
+
+## 5. `.mbtx` → 通常パッケージへの変換写像(代替案の検証)
+
+仮にスキャフォールドを生成する場合の対応関係を実機で確認。
+
+| `.mbtx` | 生成先 |
+|---|---|
+| `import { "mod@ver/pkg" @a }` | `moon.pkg` の `import { "mod/pkg" @a }` (バージョンを剥がす) + `moon.mod` の `import { "mod@ver" }` |
+| `fn main` 等のコード本体 | `cmd/<name>/main.mbt` にそのまま |
+| (なし) | `cmd/<name>/moon.pkg` に `pkgtype(kind: "executable")` |
+| (なし) | `moon.mod` (モジュール名/依存モジュール一覧) |
+
+- `moon.mod` / `moon.pkg` は現行ツールチェーンでは新フォーマット(rr_moon_mod/rr_moon_pkg、いわゆる "moon.mod 形式"。`.json` ではない)。`moon add moonbitlang/x` で `moon.mod` に `import { "moonbitlang/x@0.5.5" }` が追記されることを確認。
+- `moon.pkg` 側の `import { "moonbitlang/x/sys" @sys }` 形式は受理されることを実機確認。
+- 変換で失われるもの: `*` (import-all)、`@version` 直書き(moon.pkg はバージョンを書けず moon.mod 側の deps へ移す必要)、`-e`/stdin 実行など script-mode 固有の利便性。
+- つまり**スキャフォールド生成ルートは import ブロックの分解・書き換えロジックが必須**で、script mode の構文を自前で再実装することになる。一方で直接ビルドルートは import ブロックを MoonBit 本体に解釈させられるため、構文拡張(将来の追加含む)に自動的に追従できる。
+
+## 6. キャッシュ周り
+
+- `moon clean --dep-cache` (依存ソースキャッシュ) / `--build-cache` (ビルド成果物キャッシュ) というグローバルキャッシュ概念が moon に存在。実体は `~/.moon/cache/` 配下(実機に `deps/` が存在)。
+- `--target-dir` を使えば mbtx-install 独自のキャッシュディレクトリ(例: `$XDG_CACHE_HOME/mbtx-install/`)にビルド成果物を隔離できる。実機確認済み。
+- `moon build` が依存解決に使うレジストリインデックスは `~/.moon/registry` 配下。初回は `moon update` でインデックス取得が必要な可能性あり(今回の環境は既存インデックスありで `moonbitlang/x@0.5.5`, `moonbitlang/async@0.20.2` が即解決できた)。真っ新な環境での初回挙動は未検証。
+
+## 7. 未検証・残課題
+
+- 真っ新な環境(レジストリインデックス未取得)で `.mbtx` の外部依存が初回ビルド時に自動解決されるか。`moon update` の事前実行が要るか。
+- `single` 仮想パッケージ名や成果物パス規則は moon の実装詳細。バージョン差分に弱い可能性。→ 成果物探索は `find <target-dir> -name '*.exe'` 相当のフォールバックが安全。
+- `.mbtx` で import-all (`*`) を使ったものも native ビルド・実行できることを確認済み(`--target native --release` で `len=3` を出力)。
+- Windows: 成果物は `*.exe`。`MOON_CC` 問題(Windows native は tcc 同梱ではランタイムがビルド不可、MSVC か shim が必要 — moonbit-individual-handbook の記録より)があり、native インストールがそもそも難しい環境がある。
+- `moon install` が内部でどの `--target`/`--release` 設定を使うかは未確認(生成物サイズから native release 相当と推測)。
+- 同名 `.mbtx` が別ディレクトリにあった場合のコマンド名衝突は仕様上「ファイル名に準拠」なので利用者側の問題。キャッシュキーは絶対パスのハッシュ等で一意化するのが妥当。
+- `.mbtx` に shebang 行を書けるか → **書けない**(実機確認。`#` は字句エラー、`#!` はパースエラー)。`#!/usr/bin/env moon run` 型の直接実行は不可能なので、実行ファイル化は必須。
+
+## 8. 結論サマリ
+
+- `.mbtx` の依存・import 構文は公式仕様として十分に整っている。メタデータの余地があるのは description 等の補助情報のみ。
+- **`moon build --target native --release --target-dir <cache> <file>.mbtx` → 生成 `single.exe` を `~/.moon/bin/<name>` にコピー**、が最小構成で全要件を満たすルート(以降「ルートA」)。
+- スキャフォールド + `moon install` ルート(ルートB)も技術的には可能だが、import ブロックの再実装が必要で、script-mode 固有構文を失う。ルートAを推す。
+- `moon install <file>.mbtx` 自体が upstream で対応されれば、このツールはほぼ不要になる。upstream へのフィードバック候補。
