@@ -51,7 +51,7 @@ pub fn is_valid_name(name : String) -> Bool {
 /// Strip trailing '/' characters (keeping a lone "/" root) so the install
 /// directory can be joined with '/' without producing double slashes.
 pub fn trim_trailing_slashes(s : String) -> String {
-  let mut view : StringView = s[:]
+  let mut view : StringView = s
   while view.length() > 1 && view.has_suffix("/") {
     view = view[:view.length() - 1]
   }
