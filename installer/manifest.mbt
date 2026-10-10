@@ -12,8 +12,8 @@ pub fn manifest_path(home : String) -> String {
 /// when `name` is recorded in the manifest (mbtx-install installed it).
 pub fn overwrite_allowed(
   name : String,
-  installs : Map[String, Json],
-  dest_exists : Bool,
+  installs~ : Map[String, Json],
+  dest_exists~ : Bool,
 ) -> Bool {
   !dest_exists || installs.contains(name)
 }
@@ -45,28 +45,20 @@ pub async fn load_manifest(path : String) -> Map[String, Json] {
 /// Format the installs map as sorted `name -> source` lines for `--list`.
 /// Entries without a readable `source` render as the bare name.
 pub fn format_installs(installs : Map[String, Json]) -> Array[String] {
-  let names : Array[String] = []
-  for name, _ in installs {
-    names.push(name)
-  }
+  let names = installs.keys().to_array()
   names.sort()
-  let lines : Array[String] = []
-  for name in names {
-    let source = match installs.get(name) {
-      Some(Object(entry)) =>
-        match entry.get("source") {
-          Some(String(s)) => s
-          _ => ""
-        }
-      _ => ""
+  [
+    for name in names => {
+      match installs.get(name) {
+        Some(Object(entry)) =>
+          match entry.get("source") {
+            Some(String(s)) if !s.is_empty() => "\{name} -> \{s}"
+            _ => name
+          }
+        _ => name
+      }
     }
-    if source.is_empty() {
-      lines.push(name)
-    } else {
-      lines.push(name + " -> " + source)
-    }
-  }
-  lines
+  ]
 }
 
 ///|
@@ -76,9 +68,7 @@ pub async fn list_installs(path : String) -> Unit {
   if lines.is_empty() {
     println("(no installs recorded)")
   } else {
-    for line in lines {
-      println(line)
-    }
+    lines.each(println)
   }
 }
 
@@ -89,9 +79,9 @@ pub async fn list_installs(path : String) -> Unit {
 /// name, so the warning keeps the inconsistency visible.
 pub async fn record_install(
   path : String,
-  name : String,
-  source : String,
-  bin_dir : String,
+  name~ : String,
+  source~ : String,
+  bin_dir~ : String,
 ) -> Unit {
   let installs = load_manifest(path)
   let entry : Map[String, Json] = Map([])

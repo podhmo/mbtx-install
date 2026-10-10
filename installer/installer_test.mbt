@@ -75,11 +75,11 @@ test "find_link_target returns None without a link line" {
 ///|
 test "resolve_link_target anchors relative paths at the script dir" {
   assert_eq(
-    @installer.resolve_link_target("/abs/x.exe", "/scripts"),
+    @installer.resolve_link_target("/abs/x.exe", script_dir="/scripts"),
     "/abs/x.exe",
   )
   assert_eq(
-    @installer.resolve_link_target("./cache/x.exe", "/scripts"),
+    @installer.resolve_link_target("./cache/x.exe", script_dir="/scripts"),
     "/scripts/./cache/x.exe",
   )
 }
@@ -96,9 +96,18 @@ test "manifest_path joins home and config.json" {
 test "overwrite_allowed requires a manifest record when dest exists" {
   let installs : Map[String, Json] = Map([])
   installs["hello"] = Json::object(Map([]))
-  assert_eq(@installer.overwrite_allowed("fresh", installs, false), true)
-  assert_eq(@installer.overwrite_allowed("fresh", installs, true), false)
-  assert_eq(@installer.overwrite_allowed("hello", installs, true), true)
+  assert_eq(
+    @installer.overwrite_allowed("fresh", installs~, dest_exists=false),
+    true,
+  )
+  assert_eq(
+    @installer.overwrite_allowed("fresh", installs~, dest_exists=true),
+    false,
+  )
+  assert_eq(
+    @installer.overwrite_allowed("hello", installs~, dest_exists=true),
+    true,
+  )
 }
 
 ///|
@@ -119,8 +128,18 @@ test "format_installs renders sorted 'name -> source' lines" {
 ///|
 async test "record_install then load_manifest round-trips" {
   let path = "/tmp/mbtx-install-manifest-test/config.json"
-  @installer.record_install(path, "hello", "/abs/hello.mbtx", "/tmp/bin")
-  @installer.record_install(path, "argv", "/abs/argv.mbtx", "/tmp/bin")
+  @installer.record_install(
+    path,
+    name="hello",
+    source="/abs/hello.mbtx",
+    bin_dir="/tmp/bin",
+  )
+  @installer.record_install(
+    path,
+    name="argv",
+    source="/abs/argv.mbtx",
+    bin_dir="/tmp/bin",
+  )
   let installs = @installer.load_manifest(path)
   assert_eq(installs.contains("hello"), true)
   assert_eq(installs.contains("argv"), true)

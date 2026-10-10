@@ -31,8 +31,8 @@ pub fn cache_key(abs_path : String) -> String {
 /// `mytool.mbtx` -> `mytool`. Returns `None` when the name does not end
 /// with `.mbtx` or the remaining stem is empty.
 pub fn command_name(base : String) -> String? {
-  guard base.has_suffix(".mbtx") else { None }
-  let stem = base[:base.length() - 5].to_owned()
+  guard base.strip_suffix(".mbtx") is Some(stem) else { None }
+  let stem = stem.to_owned()
   if stem.is_empty() || stem.contains("/") {
     None
   } else {
@@ -51,11 +51,10 @@ pub fn is_valid_name(name : String) -> Bool {
 /// Strip trailing '/' characters (keeping a lone "/" root) so the install
 /// directory can be joined with '/' without producing double slashes.
 pub fn trim_trailing_slashes(s : String) -> String {
-  let mut view : StringView = s[:]
-  while view.length() > 1 && view.has_suffix("/") {
-    view = view[:view.length() - 1]
+  match s.trim_end(chars="/") {
+    "" if !s.is_empty() => "/"
+    view => view.to_owned()
   }
-  view.to_owned()
 }
 
 ///|
@@ -86,7 +85,7 @@ pub fn find_link_target(output : String) -> String? {
 /// Dry-run prints paths relative to the moon workspace directory (the
 /// directory containing the `.mbtx` when outside a project), so relative
 /// candidates are anchored at `script_dir`.
-pub fn resolve_link_target(candidate : String, script_dir : String) -> String {
+pub fn resolve_link_target(candidate : String, script_dir~ : String) -> String {
   if candidate.has_prefix("/") {
     candidate
   } else {

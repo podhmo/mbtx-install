@@ -4,7 +4,7 @@
 ///
 /// Exit codes: 0 success, 1 runtime failure, 2 usage error.
 pub async fn run(argv : ArrayView[String]) -> Int {
-  let config = parse_args(argv) catch {
+  let config = Config::parse(argv) catch {
     err => {
       // argparse errors already render as `error: <msg>` + usage text.
       eprintln(err)
@@ -22,7 +22,7 @@ pub async fn run(argv : ArrayView[String]) -> Int {
       0
     }
     (false, None) => usage_error("missing required argument: <path>")
-    (false, Some(_)) => install(config)
+    (false, Some(_)) => config.install()
   }
 }
 
@@ -34,9 +34,9 @@ fn usage_error(msg : String) -> Int {
 }
 
 ///|
-async fn install(config : Config) -> Int {
+async fn Config::install(self : Config) -> Int {
   // ---- validate the .mbtx argument (usage errors) ----
-  guard config.path is Some(path) else {
+  guard self.path is Some(path) else {
     return usage_error("missing required argument: <path>")
   }
   if !path.has_suffix(".mbtx") {
@@ -53,13 +53,9 @@ async fn install(config : Config) -> Int {
   guard command_name(basename(path)) is Some(derived_name) else {
     return usage_error("cannot derive a command name from '\{path}'")
   }
-  let name = match config.name {
-    Some(n) =>
-      if is_valid_name(n) {
-        n
-      } else {
-        return usage_error("invalid command name: '\{n}'")
-      }
+  let name = match self.name {
+    Some(n) if is_valid_name(n) => n
+    Some(n) => return usage_error("invalid command name: '\{n}'")
     None => derived_name
   }
 
@@ -69,18 +65,18 @@ async fn install(config : Config) -> Int {
     return 1
   }
   let workdir = home + "/.mbtx-install/" + cache_key(abs)
-  let bin_dir = match config.bin_dir {
+  let bin_dir = match self.bin_dir {
     Some(dir) => trim_trailing_slashes(dir)
     None => home + "/.moon/bin"
   }
-  let profile = if config.release { "release" } else { "debug" }
+  let profile = if self.release { "release" } else { "debug" }
   let dest = bin_dir + "/" + name
   let manifest = manifest_path(home)
 
   // ---- overwrite guard: never clobber a binary we did not install ----
   if @fs.exists(dest) {
     let installs = load_manifest(manifest)
-    guard overwrite_allowed(name, installs, true) else {
+    guard overwrite_allowed(name, installs~, dest_exists=true) else {
       eprintln(
         "error: '\{dest}' already exists and was not installed by mbtx-install",
       )
@@ -107,16 +103,16 @@ async fn install(config : Config) -> Int {
 
   // ---- locate the artifact ahead of time via --dry-run ----
   let flags = ["build", "--target", "native", "--target-dir", workdir]
-  if config.release {
+  if self.release {
     flags.push("--release")
   }
   let build_args = [..flags, abs]
   let dry_args = [..flags, "--dry-run", abs]
-  let artifact_hint = locate_artifact_hint(dirname(abs), dry_args)
+  let artifact_hint = locate_artifact_hint(dirname(abs), dry_args~)
 
   // ---- real build: -v passes moon's logs through, otherwise they are
   // captured and only replayed on failure ----
-  let status = if config.verbose {
+  let status = if self.verbose {
     @shell.Cmd("moon", build_args, stdout=Inherit, stderr=Inherit).status() catch {
       err => {
         eprintln("error: failed to run `moon`: \{err}")
@@ -143,18 +139,15 @@ async fn install(config : Config) -> Int {
   }
 
   // ---- find the produced binary ----
-  let artifact = match artifact_hint {
-    Some(path) if @fs.exists(path) => path
-    _ =>
-      match find_artifact(workdir, profile) {
-        Some(path) => path
-        None => {
-          eprintln(
-            "error: build succeeded but no artifact was found under '\{workdir}'",
-          )
-          return 1
-        }
-      }
+  let artifact_opt = match artifact_hint {
+    Some(path) if @fs.exists(path) => Some(path)
+    _ => find_artifact(workdir, profile~)
+  }
+  guard artifact_opt is Some(artifact) else {
+    eprintln(
+      "error: build succeeded but no artifact was found under '\{workdir}'",
+    )
+    return 1
   }
 
   // ---- install ----
@@ -179,7 +172,7 @@ async fn install(config : Config) -> Int {
   @fs.chmod(dest, 0o755) catch {
     _ => ()
   }
-  record_install(manifest, name, abs, bin_dir)
+  record_install(manifest, name~, source=abs, bin_dir~)
   if !dir_on_path(bin_dir) {
     eprintln(
       "warning: '\{bin_dir}' is not on PATH; '\{name}' will not run as a command",
@@ -194,14 +187,14 @@ async fn install(config : Config) -> Int {
 /// Returns `None` when the dry-run fails or no link line is found.
 async fn locate_artifact_hint(
   script_dir : String,
-  dry_args : Array[String],
+  dry_args~ : Array[String],
 ) -> String? {
   let out = @shell.Cmd("moon", dry_args, stdout=Capture, stderr=Capture).output() catch {
     _ => return None
   }
   let text = out.stdout() + "\n" + out.stderr()
   match find_link_target(text) {
-    Some(candidate) => Some(resolve_link_target(candidate, script_dir))
+    Some(candidate) => Some(resolve_link_target(candidate, script_dir~))
     None => None
   }
 }
@@ -209,28 +202,23 @@ async fn locate_artifact_hint(
 ///|
 /// Fallback artifact search: collect every `*.exe` under `workdir`,
 /// preferring the one under `native/<profile>/`.
-async fn find_artifact(workdir : String, profile : String) -> String? {
+async fn find_artifact(workdir : String, profile~ : String) -> String? {
   let found : Array[String] = []
   @fs.walk(workdir, (dir, entries) => {
-    for entry in entries {
-      if entry.has_suffix(".exe") {
-        found.push(dir + "/" + entry)
-      }
-    }
+    found.push_iter(
+      entries
+      .iter()
+      .filter(fn(entry) { entry.has_suffix(".exe") })
+      .map(fn(entry) { "\{dir}/\{entry}" }),
+    )
   }) catch {
     _ => ()
   }
   found.sort()
   let preferred = "/native/" + profile + "/"
-  for path in found {
-    if path.contains(preferred) {
-      return Some(path)
-    }
-  }
-  if found.length() > 0 {
-    Some(found[0])
-  } else {
-    None
+  match found.iter().find_first(fn(path) { path.contains(preferred) }) {
+    Some(path) => Some(path)
+    None => found.get(0)
   }
 }
 
