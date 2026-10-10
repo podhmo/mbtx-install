@@ -119,10 +119,14 @@ moon build --target native --release hello.mbtx
 ## 7. 未検証・残課題
 
 - ~~真っ新な環境(レジストリインデックス未取得)で `.mbtx` の外部依存が初回ビルド時に自動解決されるか。`moon update` の事前実行が要るか。~~ → 補足受領: `mbtx-install` というコマンドとして導入・実行する限り、その導入自体に moon ツールチェーン(+レジストリインデックス)が前提になるため、このケースは実運用上ほぼ発生しない=自動解決される。サブコマンドを持つ形態に変わる場合は前提が変わり得るが、そのときはリポジトリ名・ツール名自体も変わる想定。
-- `single` 仮想パッケージ名や成果物パス規則は moon の実装詳細。バージョン差分に弱い可能性。→ 成果物探索は `find <target-dir> -name '*.exe'` 相当のフォールバックが安全。
+- `single` 仮想パッケージ名や成果物パス規則は moon の実装詳細。バージョン差分に弱い可能性。→ 回避策(実機確認済み):
+  - `moon build --dry-run` の出力(リンク行 `-o <path>/single.exe`)をパースすれば規約に依存せず成果物パスを確定できる。
+  - `<target-dir>` 配下の `*.exe` を探索するフォールバックでも十分(その配下に作られる exe は実質1つ)。
+  - 補足案(~/.mbtx-install/ 下に一意ディレクトリを切って `moon new`)を検証したが、**プロジェクト内で `.mbtx` をビルドしても成果物は `single` パッケージのまま**だった(`moon new` プロジェクト内で実機確認)。`single` を回避するには `.mbtx` を実パッケージに変換するルートBしかない。作業ディレクトリの場所として `~/.mbtx-install/` 自体は採用する(design.md 反映)。
 - `.mbtx` で import-all (`*`) を使ったものも native ビルド・実行できることを確認済み(`--target native --release` で `len=3` を出力)。
-- Windows: 成果物は `*.exe`。`MOON_CC` 問題(Windows native は tcc 同梱ではランタイムがビルド不可、MSVC か shim が必要 — moonbit-individual-handbook の記録より)があり、native インストールがそもそも難しい環境がある。
-- `moon install` が内部でどの `--target`/`--release` 設定を使うかは未確認(生成物サイズから native release 相当と推測)。
+- Windows: 成果物は `*.exe`。`MOON_CC` 問題(Windows native は tcc 同梱ではランタイムがビルド不可、MSVC か shim が必要 — moonbit-individual-handbook の記録より)があり、native インストールがそもそも難しい環境がある。→ **制限事項として扱う方針([issue #3](https://github.com/podhmo/mbtx-install/issues/3) で追跡、あとで検討)**。
+- `moon install` が内部でどの `--target`/`--release` 設定を使うか → 生成物サイズから native release 相当と推測(インストール済み `main` = 473,776B、手元の release single.exe = 473,760B、debug = 791,744B)。
+- debug/release ビルド: Rust 同様に分かれており `--release` で切替。hello.mbtx で debug 0.345s / release 0.384s(小さな差。デバッグ版の方が若干速い)。→ レビュー指摘により **mbtx-install のデフォルトは native デバッグビルド(ビルド時間優先)、`--release` オプションで切替可能**にする方針。
 - 同名 `.mbtx` が別ディレクトリにあった場合のコマンド名衝突は仕様上「ファイル名に準拠」なので利用者側の問題。キャッシュキーは絶対パスのハッシュ等で一意化するのが妥当。
 - `.mbtx` に shebang 行を書けるか → **書けない**(実機確認。`#` は字句エラー、`#!` はパースエラー)。`#!/usr/bin/env moon run` 型の直接実行は不可能なので、実行ファイル化は必須。
 
