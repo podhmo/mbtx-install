@@ -28,8 +28,6 @@ $ moon install ./cmd/mbtx-install
 $ mbtx-install <path.mbtx> [-o|--name <cmd>] [--bin <dir>] [--release] [-v|--verbose]
 $ mbtx-install --list
 hello -> /home/u/tools/hello.mbtx
-$ mbtx-install --version
-mbtx-install 0.1.1
 ```
 
 ```console
