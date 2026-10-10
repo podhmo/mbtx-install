@@ -42,6 +42,47 @@ pub async fn load_manifest(path : String) -> Map[String, Json] {
 }
 
 ///|
+/// Format the installs map as sorted `name -> source` lines for `--list`.
+/// Entries without a readable `source` render as the bare name.
+pub fn format_installs(installs : Map[String, Json]) -> Array[String] {
+  let names : Array[String] = []
+  for name, _ in installs {
+    names.push(name)
+  }
+  names.sort()
+  let lines : Array[String] = []
+  for name in names {
+    let source = match installs.get(name) {
+      Some(Object(entry)) =>
+        match entry.get("source") {
+          Some(String(s)) => s
+          _ => ""
+        }
+      _ => ""
+    }
+    if source.is_empty() {
+      lines.push(name)
+    } else {
+      lines.push(name + " -> " + source)
+    }
+  }
+  lines
+}
+
+///|
+/// Print every recorded install for `mbtx-install --list`.
+pub async fn list_installs(path : String) -> Unit {
+  let lines = format_installs(load_manifest(path))
+  if lines.is_empty() {
+    println("(no installs recorded)")
+  } else {
+    for line in lines {
+      println(line)
+    }
+  }
+}
+
+///|
 /// Record `name -> {source, bin}` in the manifest, creating
 /// `~/.mbtx-install/` when needed. Warns but does not fail when the
 /// write fails: a missing record would later block overwrites of that

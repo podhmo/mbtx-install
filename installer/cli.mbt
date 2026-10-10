@@ -1,8 +1,9 @@
 ///|
 /// Parsed command-line configuration for `mbtx-install`.
 pub struct Config {
-  /// Path to the `.mbtx` script, as given on the command line.
-  path : String
+  /// Path to the `.mbtx` script, as given on the command line
+  /// (`None` when `--list` is used without a path).
+  path : String?
   /// Installed command name override (`-o` / `--name`).
   name : String?
   /// Install directory override (`--bin`).
@@ -11,6 +12,8 @@ pub struct Config {
   release : Bool
   /// Pass moon's logs through (`-v` / `--verbose`); default is quiet.
   verbose : Bool
+  /// List installs recorded in the manifest (`--list`); takes no path.
+  list : Bool
 }
 
 ///|
@@ -23,7 +26,7 @@ pub fn command() -> @argparse.Command {
       @argparse.PositionArg(
         "path",
         about="path to a .mbtx file",
-        num_args=@argparse.ValueRange::single(),
+        num_args=@argparse.ValueRange(lower=0, upper=1),
       ),
     ],
     options=[
@@ -51,6 +54,11 @@ pub fn command() -> @argparse.Command {
         long="verbose",
         about="show moon's build logs (default: quiet, errors still shown)",
       ),
+      @argparse.FlagArg(
+        "list",
+        long="list",
+        about="list installed commands recorded in the manifest",
+      ),
     ],
   )
 }
@@ -60,8 +68,9 @@ pub fn command() -> @argparse.Command {
 /// Raises the parser's error (message already contains usage text) on failure.
 pub fn parse_args(argv : ArrayView[String]) -> Config raise {
   let matches = command().parse(argv~)
-  guard matches.values is { "path": [path], .. } else {
-    fail("missing required argument: <path>")
+  let path = match matches.values {
+    { "path": [p], .. } => Some(p)
+    _ => None
   }
   let name = match matches.values {
     { "name": [n], .. } => Some(n)
@@ -73,5 +82,6 @@ pub fn parse_args(argv : ArrayView[String]) -> Config raise {
   }
   let release = matches.flags.get("release") is Some(true)
   let verbose = matches.flags.get("verbose") is Some(true)
-  { path, name, bin_dir, release, verbose, }
+  let list = matches.flags.get("list") is Some(true)
+  { path, name, bin_dir, release, verbose, list, }
 }

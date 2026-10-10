@@ -50,6 +50,14 @@ MANIFEST="$HOME/.mbtx-install/config.json"
 grep -q '"hello"' "$MANIFEST" || fail "manifest does not record 'hello'"
 echo "e2e: manifest ok"
 
+# --list prints the recorded installs; it takes no path argument.
+list_out="$("$MBTX_INSTALL" --list)"
+echo "$list_out" | grep -q "^hello -> " || fail "--list missing 'hello' entry: $list_out"
+if "$MBTX_INSTALL" --list "$SCRIPTS/hello.mbtx" >/dev/null 2>&1; then
+  fail "--list accepted a path argument"
+fi
+echo "e2e: --list ok"
+
 "$MBTX_INSTALL" "$SCRIPTS/argv-echo.mbtx" --bin "$TMPBIN" >/dev/null
 out="$("$TMPBIN/argv-echo" alpha "b c")"
 expected="arg[0]=$TMPBIN/argv-echo

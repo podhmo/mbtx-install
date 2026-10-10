@@ -102,6 +102,21 @@ test "overwrite_allowed requires a manifest record when dest exists" {
 }
 
 ///|
+test "format_installs renders sorted 'name -> source' lines" {
+  let installs : Map[String, Json] = Map([])
+  assert_eq(@installer.format_installs(installs), [])
+  let hello : Map[String, Json] = Map([])
+  hello["source"] = "/abs/hello.mbtx".to_json()
+  installs["hello"] = Json::object(hello)
+  let argv : Map[String, Json] = Map([])
+  argv["source"] = "/abs/argv.mbtx".to_json()
+  installs["argv"] = Json::object(argv)
+  assert_eq(@installer.format_installs(installs), [
+    "argv -> /abs/argv.mbtx", "hello -> /abs/hello.mbtx",
+  ])
+}
+
+///|
 async test "record_install then load_manifest round-trips" {
   let path = "/tmp/mbtx-install-manifest-test/config.json"
   @installer.record_install(path, "hello", "/abs/hello.mbtx", "/tmp/bin")

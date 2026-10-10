@@ -28,11 +28,14 @@ This file tracks actionable tasks only; completed work is swept to
   ディレクトリ名では不可能(`-o` で名とソースが分離するため)なので、
   インストール時に `~/.mbtx-install/config.json`(可能なら jsonc)へ
   name→source 等を記録する manifest 方式とする。
-- [ ] **`mbtx-install list` / `mbtx-install uninstall <name>`**
+- [x] **`mbtx-install --list`**
   ([usability-report.md](docs/ja/usability-report.md) F-2, PR #14 コメントで方針了承):
-  manifest 導入を前提に実装する。list はインストール済み名とソースの一覧、
-  uninstall はバイナリ(`<bin>/<name>`)と workdir(`~/.mbtx-install/<key>`)の
-  削除。manifest なしの暫定策として README に手動削除手順を書く手もある。
+  manifest の installs を `name -> source` で一覧表示する(path 不要)。
+- [ ] **`mbtx-install uninstall <name>`**
+  ([usability-report.md](docs/ja/usability-report.md) F-2, PR #14 コメントで方針了承):
+  manifest 導入を前提に実装する。バイナリ(`<bin>/<name>`)と
+  workdir(`~/.mbtx-install/<key>`)の削除 + manifest エントリ削除。
+  暫定策として README に手動削除手順を書く手もある。
 - [x] **`-v` / `--verbose` で moon の INFO ログを抑制**
   ([usability-report.md](docs/ja/usability-report.md)): 正常系でも moon の
   INFO ログが素通しして `Installed` 行が埋もれる。既定は静かにし、
