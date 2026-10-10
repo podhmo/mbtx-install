@@ -22,11 +22,10 @@ Directly from git:
 $ moon install https://github.com/podhmo/mbtx-install cmd/mbtx-install
 ```
 
-Once the module is published on [mooncakes](https://mooncakes.io), the
-registry form works too:
+From [mooncakes](https://mooncakes.io/docs/podhmo/mbtx-install):
 
 ```console
-$ moon install podhmo/mbtx-install/cmd/mbtx-install
+$ moon install podhmo/mbtx-install
 ```
 
 ## Usage
