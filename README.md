@@ -1,2 +1,2 @@
-# moon-one
+# mbtx-install
 tiny install command for one .mbtx file
