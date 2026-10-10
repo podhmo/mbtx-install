@@ -48,7 +48,7 @@ This file tracks actionable tasks only; completed work is swept to
   現状は realpath 解決後のベース名でインストールされるため
   `linked-script.mbtx` → `hello-no-deps` ができる。名決定を渡したパスの
   basename に変える(もしくは README に realpath 挙動を明記)。
-- [ ] **ビルド失敗時の hint を「直るかも」系の固定文言にする**
+- [x] **ビルド失敗時の hint を「直るかも」系の固定文言にする**
   ([usability-report.md](docs/ja/usability-report.md) F-4, PR #14 コメントで方針了承):
   現状は失敗理由にかかわらず「`moon update` を実行」を hint として出すため、
   ユーザーの `.mbtx` の単なるコンパイルエラーにも誤誘導する。
