@@ -76,6 +76,7 @@ moon build --target native --release hello.mbtx
 - **インストールされるコマンド名 = パッケージのディレクトリ名**(`cmd/main` → `main`)。
 - 再インストールは無条件に成功(上書き動作。エラーにならない)。
 - 配置先のデフォルトは `~/.moon/bin/`(`--bin <DIR>` で変更可)。
+- `MOON_HOME` 環境変数を見る: `MOON_HOME=/tmp/mhtest moon install ./cmd/m` → `/tmp/mhtest/bin/m` に配置された(検証済み)。`~/.moon` ルート全体(registry/cache/bin)が MOON_HOME に従うので、bin 解決をツール側で再現するなら `$MOON_HOME/bin` を読めばよい。
 - `moon install` の SOURCE 解釈順: 1. ローカルパス → 2. git URL → 3. レジストリパス。git URL + `PATH_IN_REPO` や GitHub permalink も可。
 
 ### `moon install` に `.mbtx` を直接渡した場合
