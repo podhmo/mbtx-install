@@ -1,0 +1,52 @@
+# MoonBit CI — modeled after podhmo/minigo's go.yml, adapted to the moon
+# toolchain. No Makefile dependency.
+name: MoonBit
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+# A new push to the same PR cancels the superseded run; pushes to main
+# always run to completion.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install MoonBit
+      run: |
+        curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+        echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+    - name: MoonBit version
+      run: moon version
+
+    - name: Test
+      run: |
+        if [ -f moon.mod ]; then
+          moon check
+          moon test
+        else
+          echo "no moon.mod yet — skipping (implementation pending)"
+        fi
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: E2E Test (stub)
+      run: echo "e2e not implemented yet"
