@@ -20,10 +20,21 @@ MBTX_INSTALL="$MOON_BIN/mbtx-install"
 TMPBIN="$(mktemp -d)"
 trap 'rm -rf "$TMPBIN"' EXIT
 
-"$MBTX_INSTALL" "$SCRIPTS/hello.mbtx" --bin "$TMPBIN" >/dev/null
+# quiet mode: only mbtx-install's own lines (Installed/warning) are shown;
+# moon's log format varies across toolchains so assert on OUR lines instead.
+install_log="$("$MBTX_INSTALL" "$SCRIPTS/hello.mbtx" --bin "$TMPBIN" 2>&1)"
+echo "$install_log" | grep -q "Installed" || fail "hello: missing 'Installed' line: $install_log"
+echo "$install_log" | grep -vE "^(Installed|warning:)" | grep -q . \
+  && fail "quiet mode leaked moon logs: $install_log"
 out="$("$TMPBIN/hello")"
 [ "$out" = "hello from mbtx-install e2e" ] || fail "hello: unexpected output: $out"
-echo "e2e: hello ok"
+echo "e2e: hello ok (quiet by default)"
+
+# -v/--verbose passes moon's logs through (i.e. produces more than our lines).
+verbose_log="$("$MBTX_INSTALL" "$SCRIPTS/hello.mbtx" --bin "$TMPBIN" -v 2>&1)"
+extra="$(echo "$verbose_log" | grep -vE "^(Installed|warning:)")"
+[ -n "$extra" ] || fail "verbose mode hid moon logs: $verbose_log"
+echo "e2e: verbose ok"
 
 # Installing records the name in the manifest (~/.mbtx-install/config.json).
 MANIFEST="$HOME/.mbtx-install/config.json"
