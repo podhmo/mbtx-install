@@ -45,8 +45,8 @@ This file tracks actionable tasks only; completed work is swept to
   現状は失敗理由にかかわらず「`moon update` を実行」を hint として出すため、
   ユーザーの `.mbtx` の単なるコンパイルエラーにも誤誘導する。
   moon 出力の失敗種別検出は入れず、固定メッセージの文言だけ
-  「依存の解決に失敗している場合は `moon update` を試すと直るかもしれません」
-  のように柔らかく変える。
+  「if dependency resolution failed, `moon update` may fix it」
+  のような柔らかい英語の文面に変える。
 - [ ] **(low) PATH 警告は絶対パスで表示** ([usability-report.md](docs/ja/usability-report.md) F-9):
   `--bin relbin` のような相対指定だと警告が相対パスのまま出て、
   PATH に何を足すべきか分かりにくい。
