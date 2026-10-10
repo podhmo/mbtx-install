@@ -44,6 +44,17 @@
 - **`moon lint` はこのツールチェーン(0.1.20260920)に存在しない**。`moon lint` を呼ぶと外部実行ファイル `moon-lint` を PATH から探しにいき、未導入なら `no such subcommand` でエラー。docs 上の "lint" 記述は warn-list の警告名 `syntax_lint` (warning 63) を指すだけで、lint サブコマンドではない。→ lint は現状 `.mbtx` 運用の検討対象外(コメントの補足通り)。
 - check/build は `.mbtx` をそのまま受理するため、CI 等で品質担保するなら `moon check file.mbtx`(と `moon test`)を使うのが実用的。
 
+### 依存のバージョン固定 (実機検証済み)
+
+参照: <https://docs.moonbitlang.com/ja/latest/toolchain/moon/script-mode.html>
+
+- **直依存の固定は front-matter の `@version` で可能**(`"moonbitlang/x@0.5.3/json5"` → 実際に `moonbitlang/x@0.5.3` が解決・ダウンロードされることを確認)。バージョンは厳密指定のみで、範囲演算子(`>=` 等)は存在しない。
+- 同一モジュールから import する全パッケージは同一バージョン必須(公式仕様)。
+- バージョン省略時はローカルインデックスの最新版が使われる → **同一 `.mbtx` でも時期・マシンによってビルドされる依存バージョンが変わりうる**(再現性は script 側の `@version` 記述に委ねられる)。
+- **`moonbit.deps` は `.mbtx` では参照されない**。隣接ファイルに `moonbitlang/x = "0.5.3"` と書いても front-matter 無指定の import は最新版(0.5.5)が解決された。これは `.mbt.md`(literate ドキュメント)ファイル向けの機構で、「モジュール依存だけ宣言して Moon に import を自動生成させる」用途。
+- **推移的依存(依存の依存)のバージョンを `.mbtx` 側から制約する仕組みは存在しない**。指定できるのはスクリプトが直接 import するモジュールのみ。
+- mbtx-install 観点: 依存解決は `moon build` に丸投げなので、front-matter `@version` は**ツール側の追加実装なしでそのまま効く**。配布先での再現性を上げたい場合は「スクリプト作者が `@version` を書く」が現時点の唯一の手段。
+
 ### メタデータ記述について (要調査だった項目)
 
 - description / author 等のメタデータ用プラグマは**現状存在しない**。script mode に任意メタデータを埋め込む公式構文は見つからなかった。
