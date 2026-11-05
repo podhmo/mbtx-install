@@ -1,5 +1,5 @@
 ///|
-extern "c" fn native_exit(code : Int) -> Unit = "exit"
+extern "c" fn native_exit(code : Int32) -> Unit = "exit"
 
 ///|
 async fn main {

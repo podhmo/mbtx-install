@@ -123,10 +123,10 @@ test "format_installs renders sorted 'name -> source' lines" {
   let installs : Map[String, Json] = Map([])
   assert_eq(@installer.format_installs(installs), [])
   let hello : Map[String, Json] = Map([])
-  hello["source"] = "/abs/hello.mbtx".to_json()
+  hello["source"] = Json::string("/abs/hello.mbtx")
   installs["hello"] = Json::object(hello)
   let argv : Map[String, Json] = Map([])
-  argv["source"] = "/abs/argv.mbtx".to_json()
+  argv["source"] = Json::string("/abs/argv.mbtx")
   installs["argv"] = Json::object(argv)
   assert_eq(@installer.format_installs(installs), [
     "argv -> /abs/argv.mbtx", "hello -> /abs/hello.mbtx",

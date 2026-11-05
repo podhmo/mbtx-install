@@ -3,6 +3,7 @@ package "podhmo/mbtx-install/installer"
 
 import {
   "moonbitlang/core/argparse",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -20,23 +21,23 @@ pub fn dirname(String) -> String
 
 pub fn find_link_target(String) -> String?
 
-pub fn format_installs(Map[String, Json]) -> Array[String]
+pub fn format_installs(Map[String, @json.Json]) -> Array[String]
 
 pub fn is_valid_name(String) -> Bool
 
 pub async fn list_installs(String) -> Unit
 
-pub async fn load_manifest(String) -> Map[String, Json]
+pub async fn load_manifest(String) -> Map[String, @json.Json]
 
 pub fn manifest_path(String) -> String
 
-pub fn overwrite_allowed(String, installs~ : Map[String, Json], dest_exists~ : Bool) -> Bool
+pub fn overwrite_allowed(String, installs~ : Map[String, @json.Json], dest_exists~ : Bool) -> Bool
 
 pub async fn record_install(String, name~ : String, source~ : String, bin_dir~ : String) -> Unit
 
 pub fn resolve_link_target(String, script_dir~ : String) -> String
 
-pub async fn run(ArrayView[String]) -> Int
+pub async fn run(ArrayView[String]) -> Int32
 
 pub fn trim_trailing_slashes(String) -> String
 

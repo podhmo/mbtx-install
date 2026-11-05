@@ -85,8 +85,8 @@ pub async fn record_install(
 ) -> Unit {
   let installs = load_manifest(path)
   let entry : Map[String, Json] = Map([])
-  entry["source"] = source.to_json()
-  entry["bin"] = bin_dir.to_json()
+  entry["source"] = Json::string(source)
+  entry["bin"] = Json::string(bin_dir)
   installs[name] = Json::object(entry)
   let root : Map[String, Json] = Map([])
   root["installs"] = Json::object(installs)

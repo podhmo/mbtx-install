@@ -22,11 +22,22 @@ concurrency:
 
 jobs:
   test:
+    name: test (moonbit ${{ matrix.moonbit }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # latest: unpinned, catches breakage from new toolchains early.
+        # the pinned one is the minimum supported version (floor); bump
+        # it deliberately. Pinned versions need the full `X.Y.Z+hash`
+        # (see `Compiler version` in core's CHANGELOG.md / `moonc -v`).
+        moonbit: [ "latest", "0.10.20+65efd5b93" ]
     steps:
     - uses: actions/checkout@v7
 
     - name: Install MoonBit
+      env:
+        MOONBIT_INSTALL_VERSION: ${{ matrix.moonbit }}
       run: |
         curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
         echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
@@ -45,11 +56,19 @@ jobs:
         fi
 
   e2e-test:
+    name: e2e-test (moonbit ${{ matrix.moonbit }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # keep in sync with the test job matrix
+        moonbit: [ "latest", "0.10.20+65efd5b93" ]
     steps:
     - uses: actions/checkout@v7
 
     - name: Install MoonBit
+      env:
+        MOONBIT_INSTALL_VERSION: ${{ matrix.moonbit }}
       run: |
         curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
         echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
