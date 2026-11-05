@@ -1,7 +1,7 @@
 ///|
 /// The installed binary's version, baked in at build time.
 /// Keep in sync with `version` in `moon.mod`.
-pub const VERSION : String = "0.1.1"
+pub const VERSION : String = "0.1.2"
 
 ///|
 /// Parsed command-line configuration for `mbtx-install`.
