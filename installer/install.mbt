@@ -3,7 +3,7 @@
 /// install pipeline, and return the process exit code.
 ///
 /// Exit codes: 0 success, 1 runtime failure, 2 usage error.
-pub async fn run(argv : ArrayView[String]) -> Int {
+pub async fn run(argv : ArrayView[String]) -> Int32 {
   let config = Config::parse(argv) catch {
     err => {
       // argparse errors already render as `error: <msg>` + usage text.
@@ -34,14 +34,14 @@ pub async fn run(argv : ArrayView[String]) -> Int {
 }
 
 ///|
-fn usage_error(msg : String) -> Int {
+fn usage_error(msg : String) -> Int32 {
   eprintln("error: \{msg}\n")
   eprintln(command().render_help())
   2
 }
 
 ///|
-async fn Config::install(self : Config) -> Int {
+async fn Config::install(self : Config) -> Int32 {
   // ---- validate the .mbtx argument (usage errors) ----
   guard self.path is Some(path) else {
     return usage_error("missing required argument: <path>")

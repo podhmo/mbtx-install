@@ -8,7 +8,8 @@ experience for MoonBit scripts.
 
 ## Install
 
-Requires the `moon` toolchain on `PATH`.
+Requires the `moon` toolchain on `PATH` (MoonBit `v0.10.20` or later; CI
+tests against both that version and the latest release).
 
 From [mooncakes](https://mooncakes.io/docs/podhmo/mbtx-install):
 
